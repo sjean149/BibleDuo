@@ -1,0 +1,99 @@
+{
+  "book": {"name": "John", "order": 43},
+  "chapter": {"chapter_number": 1},
+  "lesson": {
+    "lang": "es",
+    "order": 1,
+    "title": "John 1 - Core Vocabulary (Part 1) - Spanish",
+    "type": "vocab"
+  },
+  "exercises": [
+    {
+      "order": 1,
+      "type": "multiple_choice",
+      "prompt": {"text": "el Verbo", "instruction": "Select the English translation"},
+      "answer": {"value": "Word", "distractors": ["light", "beginning", "truth"]}
+    },
+    {
+      "order": 2,
+      "type": "multiple_choice",
+      "prompt": {"text": "el principio", "instruction": "Select the English translation"},
+      "answer": {"value": "beginning", "distractors": ["life", "world", "darkness"]}
+    },
+    {
+      "order": 3,
+      "type": "listen_select",
+      "prompt": {"audio_word": "la luz", "instruction": "Listen and select what you heard"},
+      "answer": {"value": "light", "distractors": ["darkness", "grace", "glory"]}
+    },
+    {
+      "order": 4,
+      "type": "match",
+      "prompt": {
+        "instruction": "Match each Spanish word to its English translation",
+        "pairs": [
+          {"target": "la luz", "native": "light"},
+          {"target": "la vida", "native": "life"},
+          {"target": "el mundo", "native": "world"},
+          {"target": "la carne", "native": "flesh"},
+          {"target": "la gracia", "native": "grace"},
+          {"target": "la verdad", "native": "truth"}
+        ]
+      },
+      "answer": {"value": "all pairs matched"}
+    },
+    {
+      "order": 5,
+      "type": "multiple_choice",
+      "prompt": {"text": "las tinieblas", "instruction": "Select the English translation"},
+      "answer": {"value": "darkness", "distractors": ["light", "world", "life"]}
+    },
+    {
+      "order": 6,
+      "type": "speak",
+      "prompt": {"text": "ha sido hecho", "instruction": "Say this phrase aloud"},
+      "answer": {"value": "ha sido hecho"}
+    },
+    {
+      "order": 7,
+      "type": "multiple_choice",
+      "prompt": {"text": "el mundo", "instruction": "Select the English translation"},
+      "answer": {"value": "world", "distractors": ["beginning", "witness", "flesh"]}
+    },
+    {
+      "order": 8,
+      "type": "fill_blank",
+      "prompt": {
+        "text_with_blank": "En el ___ era el Verbo",
+        "instruction": "Fill in the blank",
+        "verse_ref": "John 1:1"
+      },
+      "answer": {"value": "principio"}
+    },
+    {
+      "order": 9,
+      "type": "match",
+      "prompt": {
+        "instruction": "Match each Spanish word to its English translation",
+        "pairs": [
+          {"target": "las cosas", "native": "things"},
+          {"target": "creen", "native": "believe"},
+          {"target": "después", "native": "after"},
+          {"target": "antes", "native": "before"},
+          {"target": "por medio de", "native": "by means of"},
+          {"target": "siguiente", "native": "following"}
+        ]
+      },
+      "answer": {"value": "all pairs matched"}
+    },
+    {
+      "order": 10,
+      "type": "reorder",
+      "prompt": {
+        "instruction": "Put the words in the correct order",
+        "words": ["eres Simón,", "serás", "tú", "hijo de Jonás;", "Jesús, dijo", "Tú", "llamado Cefas"]
+      },
+      "answer": {"value": "Jesús, dijo: Tú eres Simón, hijo de Jonás; tú serás llamado Cefas"}
+    }
+  ]
+}

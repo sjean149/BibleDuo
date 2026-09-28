@@ -1,0 +1,89 @@
+{
+  "book": {"name": "John", "order": 43},
+  "chapter": {"chapter_number": 1},
+  "lesson": {
+    "lang": "fr",
+    "order": 1,
+    "title": "John 1 - Core Vocabulary (Part 1)",
+    "type": "vocab"
+  },
+  "exercises": [
+    {
+      "order": 1,
+      "type": "multiple_choice",
+      "prompt": {"text": "la Parole", "instruction": "Select the English translation"},
+      "answer": {"value": "Word", "distractors": ["light", "beginning", "truth"]}
+    },
+    {
+      "order": 2,
+      "type": "multiple_choice",
+      "prompt": {"text": "le commencement", "instruction": "Select the English translation"},
+      "answer": {"value": "beginning", "distractors": ["life", "world", "darkness"]}
+    },
+    {
+      "order": 3,
+      "type": "listen_select",
+      "prompt": {"audio_word": "la lumière", "instruction": "Listen and select what you heard"},
+      "answer": {"value": "light", "distractors": ["darkness", "grace", "glory"]}
+    },
+    {
+      "order": 4,
+      "type": "multiple_choice",
+      "prompt": {"text": "les ténèbres", "instruction": "Select the English translation"},
+      "answer": {"value": "darkness", "distractors": ["light", "world", "life"]}
+    },
+    {
+      "order": 5,
+      "type": "speak",
+      "prompt": {"text": "la vie", "instruction": "Say this word aloud"},
+      "answer": {"value": "la vie"}
+    },
+    {
+      "order": 6,
+      "type": "multiple_choice",
+      "prompt": {"text": "le monde", "instruction": "Select the English translation"},
+      "answer": {"value": "world", "distractors": ["beginning", "witness", "flesh"]}
+    },
+    {
+      "order": 7,
+      "type": "fill_blank",
+      "prompt": {
+        "text_with_blank": "Au ___, \u00e9tait la Parole",
+        "instruction": "Fill in the blank",
+        "verse_ref": "John 1:1"
+      },
+      "answer": {"value": "commencement"}
+    },
+    {
+      "order": 8,
+      "type": "multiple_choice",
+      "prompt": {"text": "croire", "instruction": "Select the English translation"},
+      "answer": {"value": "to believe", "distractors": ["to see", "to come", "to baptize"]}
+    },
+    {
+      "order": 9,
+      "type": "match",
+      "prompt": {
+        "instruction": "Match each French word to its English translation",
+        "pairs": [
+          {"fr": "le t\u00e9moignage", "en": "witness"},
+          {"fr": "la chair", "en": "flesh"},
+          {"fr": "la gr\u00e2ce", "en": "grace"},
+          {"fr": "la v\u00e9rit\u00e9", "en": "truth"},
+          {"fr": "le disciple", "en": "disciple"},
+          {"fr": "le fr\u00e8re", "en": "brother"}
+        ]
+      },
+      "answer": {"value": "see pairs in prompt"}
+    },
+    {
+      "order": 10,
+      "type": "reorder",
+      "prompt": {
+        "instruction": "Put the words in the correct order",
+        "words": ["la", "Dieu", "\u00e9tait", "Parole", "et", "avec"]
+      },
+      "answer": {"value": "et la Parole \u00e9tait avec Dieu"}
+    }
+  ]
+}
