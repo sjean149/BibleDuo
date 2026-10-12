@@ -1,0 +1,5 @@
+.env
+.bible_cache/
+
+#Google Cloud Credentials
+.backend/gcp-service-account.json
