@@ -1,26 +1,30 @@
 """
-Imports the four Gospels (WEB / RV1909 / LSG1910) into the verses table.
+Imports the whole New Testament (WEB / RV1909 / LSG1910) into the verses table.
 
 Run from the backend folder with the venv active:
 
   python -m app.import_gospels --list            show the translations the source offers
+  python -m app.import_gospels --check           compare our book codes/chapter counts with the source
+                                                 (writes nothing; do this before the big import)
   python -m app.import_gospels --sample          fetch Matthew 1 in all 3 languages and PRINT it
                                                  (writes nothing; do this first)
-  python -m app.import_gospels                   import all 4 Gospels in all 3 languages
-  python -m app.import_gospels --books John      import just one book
+  python -m app.import_gospels                   import all 27 books in all 3 languages (~780 downloads)
+  python -m app.import_gospels --books John "1 John"   import just some books (quote names with spaces)
 
 Safe to run again: downloads are cached in backend/.bible_cache, and verses
 that already exist are updated in place instead of duplicated.
 """
 import argparse
 from pathlib import Path
+from typing import Optional
 
 from app.services.bible_import import (
-    GOSPELS,
+    NEW_TESTAMENT,
     TRANSLATIONS,
     chapter_url,
     extract_verses,
     fetch_json,
+    list_books,
     list_translations,
     resolve_translation,
 )
@@ -43,6 +47,38 @@ def cmd_list() -> None:
         label = f"{t.get('languageName', '')} {t.get('languageEnglishName', '')} {t.get('language', '')}".lower()
         if any(w in label for w in wanted) or t.get("language") in ("eng", "spa", "fra"):
             print(f"{t.get('id'):<16} {t.get('englishName') or t.get('name')}")
+
+
+def cmd_check() -> None:
+    """Compare our book table with what the source says it serves. Writes nothing."""
+    chosen = resolve_all(list_translations(CACHE_DIR))
+    problems = 0
+    for lang, t in chosen.items():
+        try:
+            books = list_books(t["id"], CACHE_DIR)
+        except Exception as err:
+            print(f"  [{lang}] could not read the book list: {err}")
+            problems += 1
+            continue
+        by_id = {b.get("id"): b for b in books if isinstance(b, dict)}
+        if not by_id:
+            print(f"  [{lang}] book list had an unexpected shape; skipping the comparison")
+            problems += 1
+            continue
+        for name, code, _order, count in NEW_TESTAMENT:
+            book = by_id.get(code)
+            if book is None:
+                print(f"  [{lang}] {name}: the source has no book with code {code}")
+                problems += 1
+                continue
+            theirs = book.get("numberOfChapters")
+            if isinstance(theirs, int) and theirs != count:
+                print(f"  [{lang}] {name}: we expect {count} chapters, the source says {theirs}")
+                problems += 1
+    if problems:
+        print(f"\n{problems} problem(s). Fix the table in services/bible_import.py (or tell me what it printed).")
+    else:
+        print("\nAll 27 books and chapter counts match in all 3 translations. Safe to run the full import.")
 
 
 def cmd_sample() -> None:
@@ -109,7 +145,7 @@ def save_verses(db, chapter_id: int, lang: str, verses: list[tuple[int, str]]) -
     return added, updated
 
 
-def cmd_import(only_books: list[str] | None) -> None:
+def cmd_import(only_books: Optional[list[str]]) -> None:
     from app.database import Base, SessionLocal, engine
 
     Base.metadata.create_all(bind=engine)
@@ -117,9 +153,9 @@ def cmd_import(only_books: list[str] | None) -> None:
     print("Resolving translations...")
     chosen = resolve_all(list_translations(CACHE_DIR))
 
-    books = [b for b in GOSPELS if not only_books or b[0].lower() in only_books]
+    books = [b for b in NEW_TESTAMENT if not only_books or b[0].lower() in only_books]
     if not books:
-        raise SystemExit(f"No matching books. Choose from: {', '.join(b[0] for b in GOSPELS)}")
+        raise SystemExit(f"No matching books. Choose from: {', '.join(b[0] for b in NEW_TESTAMENT)}")
 
     db = SessionLocal()
     seen: dict[tuple[str, int], dict[str, set[int]]] = {}  # (book, chapter) -> lang -> verse numbers
@@ -182,14 +218,17 @@ def cmd_import(only_books: list[str] | None) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Import the Gospels into the verses table.")
+    parser = argparse.ArgumentParser(description="Import the New Testament into the verses table.")
     parser.add_argument("--list", action="store_true", help="list available translations and exit")
+    parser.add_argument("--check", action="store_true", help="compare our book table with the source; write nothing")
     parser.add_argument("--sample", action="store_true", help="print Matthew 1 per language; write nothing")
-    parser.add_argument("--books", nargs="+", help="only these books, e.g. --books John Mark")
+    parser.add_argument("--books", nargs="+", help='only these books, e.g. --books John "1 John"')
     args = parser.parse_args()
 
     if args.list:
         cmd_list()
+    elif args.check:
+        cmd_check()
     elif args.sample:
         cmd_sample()
     else:

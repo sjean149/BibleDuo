@@ -87,3 +87,22 @@ class ExerciseSubmission(BaseModel):
 class ExerciseResult(BaseModel):
     correct: bool
     correct_answer: Optional[Any] = None
+
+class TranslateRequest(BaseModel):
+    text: str
+    source_lang: str
+    target_lang: str = "en"
+
+
+class TranslateResponse(BaseModel):
+    translation: str
+
+
+class VerseOut(BaseModel):
+    id: int
+    verse_number: int
+    lang: str
+    text: str
+
+    class Config:
+        from_attributes = True

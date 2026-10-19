@@ -10,24 +10,25 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { fetchLesson } from '../api';
 import { API_URL } from '../config';
 import { colors, radius } from '../theme';
 import { gradeExercise, SUPPORTED_TYPES } from '../utils/grade';
-import ExerciseView from '../components/ExerciseView';
+import ExerciseView from '../components/ExtendedExerciseView';
 import ProgressBar from '../components/ProgressBar';
+import { useProgress } from '../progress/ProgressContext';
 
-const STARTING_HEARTS = 5;
-
-export default function LessonScreen({ lessonId }) {
+export default function LessonScreen({ lessonId, onExit, onComplete }) {
+  // Hearts are shared by the whole app (they show in the top bar and refill over time).
+  const { hearts, loseHeart } = useProgress();
   const [lesson, setLesson] = useState(null);
   const [error, setError] = useState(null);
 
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState(null); // what the learner has chosen/typed
   const [result, setResult] = useState(null); // { correct, correctText } after Check
-  const [hearts, setHearts] = useState(STARTING_HEARTS);
   const [correctCount, setCorrectCount] = useState(0);
   const [gradedCount, setGradedCount] = useState(0);
   const [finished, setFinished] = useState(null); // null | 'done' | 'out_of_hearts'
@@ -48,11 +49,15 @@ export default function LessonScreen({ lessonId }) {
     load();
   }, [load]);
 
+  // Tell the path screen the lesson was finished (the step then lights up).
+  useEffect(() => {
+    if (finished === 'done') onComplete?.({ correct: correctCount, total: gradedCount });
+  }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const restart = () => {
     setIndex(0);
     setAnswer(null);
     setResult(null);
-    setHearts(STARTING_HEARTS);
     setCorrectCount(0);
     setGradedCount(0);
     setFinished(null);
@@ -69,6 +74,9 @@ export default function LessonScreen({ lessonId }) {
           Wi-Fi as your computer.
         </Text>
         <PrimaryButton label="Try again" onPress={load} />
+        <Pressable onPress={onExit}>
+          <Text style={[styles.body, { textAlign: 'center' }]}>Back to the path</Text>
+        </Pressable>
       </Centered>
     );
   }
@@ -87,9 +95,12 @@ export default function LessonScreen({ lessonId }) {
       <Centered>
         <Text style={styles.title}>{outOfHearts ? 'Out of hearts' : 'Lesson complete'}</Text>
         <Text style={styles.body}>
-          {correctCount} of {gradedCount} answered correctly.
+          {outOfHearts
+            ? 'A heart comes back every 30 minutes. You can still read and listen in the meantime.'
+            : `${correctCount} of ${gradedCount} answered correctly.`}
         </Text>
-        <PrimaryButton label={outOfHearts ? 'Start over' : 'Do it again'} onPress={restart} />
+        {!outOfHearts && <PrimaryButton label="Do it again" onPress={restart} />}
+        <PrimaryButton label="Back to the path" onPress={onExit} tone={outOfHearts ? undefined : 'good'} />
       </Centered>
     );
   }
@@ -111,16 +122,20 @@ export default function LessonScreen({ lessonId }) {
     setResult(graded);
     setGradedCount((n) => n + 1);
     if (graded.correct) setCorrectCount((n) => n + 1);
-    else setHearts((h) => Math.max(0, h - 1));
+    else loseHeart();
   };
 
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
+        <Pressable onPress={onExit} hitSlop={12} accessibilityLabel="Back to the path">
+          <Text style={styles.back}>‹</Text>
+        </Pressable>
         <ProgressBar value={index + (result ? 1 : 0)} total={exercises.length} />
-        <Text style={styles.hearts} accessibilityLabel={`${hearts} hearts left`}>
-          {hearts} left
-        </Text>
+        <View style={styles.heartsBox} accessibilityLabel={`${hearts} hearts left`}>
+          <Ionicons name="heart" size={22} color={colors.madder} />
+          <Text style={styles.hearts}>{hearts}</Text>
+        </View>
       </View>
 
       <KeyboardAvoidingView
@@ -208,7 +223,9 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
   },
-  hearts: { fontSize: 15, fontWeight: '600', color: colors.madder },
+  heartsBox: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  hearts: { fontSize: 17, fontWeight: '800', color: colors.madder },
+  back: { fontSize: 28, color: colors.ink, paddingHorizontal: 4 },
   content: { padding: 20, paddingTop: 28, flexGrow: 1 },
   footer: { padding: 20, gap: 12, backgroundColor: colors.mist },
   footerCorrect: { backgroundColor: colors.leafTint },

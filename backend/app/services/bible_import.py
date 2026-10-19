@@ -12,13 +12,78 @@ from pathlib import Path
 
 BASE_URL = "https://bible.helloao.org/api"
 
-# (name in our database, book code used by the source, order in the NT, chapter count)
-GOSPELS = [
+# (name in our database, book code used by the source, order in the Bible, chapter count)
+# Orders 40-66 are the New Testament positions, so John stays 43 as before.
+# The codes are the standard 3-character ones. Run `python -m app.import_gospels --check`
+# to compare this table with what the source actually serves (it needs internet access).
+NEW_TESTAMENT = [
     ("Matthew", "MAT", 40, 28),
     ("Mark", "MRK", 41, 16),
     ("Luke", "LUK", 42, 24),
     ("John", "JHN", 43, 21),
+    ("Acts", "ACT", 44, 28),
+    ("Romans", "ROM", 45, 16),
+    ("1 Corinthians", "1CO", 46, 16),
+    ("2 Corinthians", "2CO", 47, 13),
+    ("Galatians", "GAL", 48, 6),
+    ("Ephesians", "EPH", 49, 6),
+    ("Philippians", "PHP", 50, 4),
+    ("Colossians", "COL", 51, 4),
+    ("1 Thessalonians", "1TH", 52, 5),
+    ("2 Thessalonians", "2TH", 53, 3),
+    ("1 Timothy", "1TI", 54, 6),
+    ("2 Timothy", "2TI", 55, 4),
+    ("Titus", "TIT", 56, 3),
+    ("Philemon", "PHM", 57, 1),
+    ("Hebrews", "HEB", 58, 13),
+    ("James", "JAS", 59, 5),
+    ("1 Peter", "1PE", 60, 5),
+    ("2 Peter", "2PE", 61, 3),
+    ("1 John", "1JN", 62, 5),
+    ("2 John", "2JN", 63, 1),
+    ("3 John", "3JN", 64, 1),
+    ("Jude", "JUD", 65, 1),
+    ("Revelation", "REV", 66, 22),
 ]
+GOSPELS = NEW_TESTAMENT[:4]  # kept so older code that imports GOSPELS still works
+
+# Book names as a learner of each language expects to see them (Louis Segond / Reina-Valera
+# style). The database keeps the English name; screens and lesson titles use these.
+LOCAL_BOOK_NAMES = {
+    "Matthew": {"fr": "Matthieu", "es": "Mateo"},
+    "Mark": {"fr": "Marc", "es": "Marcos"},
+    "Luke": {"fr": "Luc", "es": "Lucas"},
+    "John": {"fr": "Jean", "es": "Juan"},
+    "Acts": {"fr": "Actes", "es": "Hechos"},
+    "Romans": {"fr": "Romains", "es": "Romanos"},
+    "1 Corinthians": {"fr": "1 Corinthiens", "es": "1 Corintios"},
+    "2 Corinthians": {"fr": "2 Corinthiens", "es": "2 Corintios"},
+    "Galatians": {"fr": "Galates", "es": "Gálatas"},
+    "Ephesians": {"fr": "Éphésiens", "es": "Efesios"},
+    "Philippians": {"fr": "Philippiens", "es": "Filipenses"},
+    "Colossians": {"fr": "Colossiens", "es": "Colosenses"},
+    "1 Thessalonians": {"fr": "1 Thessaloniciens", "es": "1 Tesalonicenses"},
+    "2 Thessalonians": {"fr": "2 Thessaloniciens", "es": "2 Tesalonicenses"},
+    "1 Timothy": {"fr": "1 Timothée", "es": "1 Timoteo"},
+    "2 Timothy": {"fr": "2 Timothée", "es": "2 Timoteo"},
+    "Titus": {"fr": "Tite", "es": "Tito"},
+    "Philemon": {"fr": "Philémon", "es": "Filemón"},
+    "Hebrews": {"fr": "Hébreux", "es": "Hebreos"},
+    "James": {"fr": "Jacques", "es": "Santiago"},
+    "1 Peter": {"fr": "1 Pierre", "es": "1 Pedro"},
+    "2 Peter": {"fr": "2 Pierre", "es": "2 Pedro"},
+    "1 John": {"fr": "1 Jean", "es": "1 Juan"},
+    "2 John": {"fr": "2 Jean", "es": "2 Juan"},
+    "3 John": {"fr": "3 Jean", "es": "3 Juan"},
+    "Jude": {"fr": "Jude", "es": "Judas"},
+    "Revelation": {"fr": "Apocalypse", "es": "Apocalipsis"},
+}
+
+
+def local_book_name(book_name: str, lang: str) -> str:
+    """'John' -> 'Juan' for Spanish. English and unknown books keep the English name."""
+    return LOCAL_BOOK_NAMES.get(book_name, {}).get(lang, book_name)
+
 
 # our language code -> (preferred translation id, words to search for if that id is missing)
 # All three are public domain. Run `python -m app.import_gospels --list` to see real ids.
@@ -58,6 +123,12 @@ def fetch_json(url: str, cache_dir: Path, retries: int = 3) -> dict:
 def list_translations(cache_dir: Path) -> list[dict]:
     data = fetch_json(f"{BASE_URL}/available_translations.json", cache_dir)
     return data["translations"] if isinstance(data, dict) else data
+
+
+def list_books(translation_id: str, cache_dir: Path) -> list[dict]:
+    """The source's own list of books for one translation: [{'id': 'MAT', 'numberOfChapters': 28, ...}]."""
+    data = fetch_json(f"{BASE_URL}/{translation_id}/books.json", cache_dir)
+    return data["books"] if isinstance(data, dict) and "books" in data else data
 
 
 def resolve_translation(translations: list[dict], wanted_id: str, name_hint: str) -> dict:
