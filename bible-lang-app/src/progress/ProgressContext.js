@@ -8,7 +8,9 @@ import {
   loseHeart as loseHeartLogic,
   msToNextHeart,
   refillHearts,
+  resetProgress as resetProgressLogic,
 } from './logic';
+import { DEFAULT_LANG, DEMO_MODE, MAX_HEARTS } from './rules';
 
 const ProgressContext = createContext(null);
 
@@ -23,7 +25,9 @@ export function ProgressProvider({ children }) {
     loadState().then((saved) => {
       if (!alive) return;
       const t = Date.now();
-      setState(refillHearts({ ...createInitialState(t), ...(saved ?? {}) }, t));
+      const fresh = { ...createInitialState(t), lang: DEFAULT_LANG }; // used only by first-time visitors
+      const demo = DEMO_MODE ? { premium: true } : {}; // a demo build always has unlimited hearts
+      setState(refillHearts({ ...fresh, ...(saved ?? {}), ...demo }, t));
     });
     return () => {
       alive = false;
@@ -51,6 +55,8 @@ export function ProgressProvider({ children }) {
       loseHeart: () => setState((s) => loseHeartLogic(s, Date.now())),
       completeStep: (lang, chapterId, step) =>
         setState((s) => completeStepLogic(s, lang, chapterId, step, Date.now())),
+      setPremium: (premium) => setState((s) => ({ ...s, premium: !!premium })),
+      resetProgress: () => setState((s) => resetProgressLogic(s, Date.now())),
     }),
     []
   );
@@ -62,7 +68,8 @@ export function ProgressProvider({ children }) {
       ready: true,
       state,
       lang: state.lang,
-      hearts: state.hearts,
+      premium: !!state.premium,
+      hearts: state.premium ? MAX_HEARTS : state.hearts, // unlimited plan: always full
       msToNextHeart: msToNextHeart(state, now),
       days: state.days,
       today,

@@ -22,8 +22,10 @@ export default function StepSheet({
   hearts,
   msToNextHeart,
   onStart, // (step) => void
+  onOpenHearts, // () => void: the hearts / unlimited page
   onClose,
 }) {
+  const outOfHearts = hearts <= 0 && available.some((s) => NEEDS_HEARTS.includes(s));
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close">
@@ -77,6 +79,19 @@ export default function StepSheet({
               </Pressable>
             );
           })}
+
+          {outOfHearts && (
+            <Pressable
+              onPress={onOpenHearts}
+              accessibilityRole="button"
+              accessibilityLabel="Out of hearts. See your options"
+              style={styles.hearts}
+            >
+              <Ionicons name="heart-dislike" size={20} color={colors.madder} />
+              <Text style={styles.heartsText}>Out of hearts. Reading is still free, or see your options.</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.madder} />
+            </Pressable>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
@@ -110,6 +125,15 @@ const styles = StyleSheet.create({
   text: { flex: 1, gap: 2 },
   stepTitle: { fontSize: 17, fontWeight: '700', color: colors.ink },
   note: { fontSize: 14, lineHeight: 19, color: colors.muted },
+  hearts: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: radius.option,
+    backgroundColor: colors.madderTint,
+  },
+  heartsText: { flex: 1, fontSize: 14, lineHeight: 19, fontWeight: '600', color: colors.madder },
   go: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10 },
   goText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 });

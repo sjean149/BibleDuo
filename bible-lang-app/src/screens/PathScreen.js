@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { fetchJourney } from '../api';
+import { loadJourney, peekJourney } from '../journeyStore';
+import { UNIT_COLORS } from '../unitColors';
 import { colors, radius } from '../theme';
 import { computeStatuses, isStepUnlocked, levelProgress, unitProgress } from '../progress/logic';
 import { useProgress } from '../progress/ProgressContext';
@@ -10,17 +11,12 @@ import LevelCircle from '../components/LevelCircle';
 import StepSheet from '../components/StepSheet';
 import TopBar from '../components/TopBar';
 
-// One colour per unit, repeating, so you can tell where one book ends and the next begins.
-const UNIT_COLORS = ['#1B6CA8', '#3F9D55', '#C2503F', '#7A5AB8', '#D98200', '#2A8F94'];
 // Sideways shift for each level in a unit, which makes the path wind like Duolingo's.
 const OFFSETS = [0, 38, 64, 38, 0, -38, -64, -38];
 
-// Remember the last answer per language so coming back from a lesson shows the path instantly.
-const journeyCache = {};
-
-export default function PathScreen({ onStartStep, onOpenStreak }) {
+export default function PathScreen({ onStartStep, onOpenStreak, onOpenHearts }) {
   const { state, lang, hearts, msToNextHeart } = useProgress();
-  const [journey, setJourney] = useState(() => journeyCache[lang] ?? null);
+  const [journey, setJourney] = useState(() => peekJourney(lang));
   const [error, setError] = useState(null);
   const [attempt, setAttempt] = useState(0); // bump to retry
   const [selected, setSelected] = useState(null); // { unit, level } while the step sheet is open
@@ -34,10 +30,9 @@ export default function PathScreen({ onStartStep, onOpenStreak }) {
     let cancelled = false;
     scrolled.current = false;
     setError(null);
-    setJourney(journeyCache[lang] ?? null);
-    fetchJourney(lang)
+    setJourney(peekJourney(lang));
+    loadJourney(lang)
       .then((data) => {
-        journeyCache[lang] = data;
         if (!cancelled) setJourney(data);
       })
       .catch((err) => {
@@ -74,7 +69,7 @@ export default function PathScreen({ onStartStep, onOpenStreak }) {
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <TopBar onOpenStreak={onOpenStreak} />
+      <TopBar onOpenStreak={onOpenStreak} onOpenHearts={onOpenHearts} />
 
       {error && !journey ? (
         <View style={styles.center}>
@@ -187,6 +182,10 @@ export default function PathScreen({ onStartStep, onOpenStreak }) {
         isUnlocked={(step) => (selected ? isStepUnlocked(state, lang, selected.level, step) : false)}
         hearts={hearts}
         msToNextHeart={msToNextHeart}
+        onOpenHearts={() => {
+          setSelected(null);
+          onOpenHearts();
+        }}
         onClose={() => setSelected(null)}
         onStart={(step) => {
           const { unit, level } = selected;

@@ -36,3 +36,6 @@ yarn-error.log*
 next-env.d.ts
 
 **/gcp-service-account.json
+# Python (the backend has its own .gitignore with the details)
+venv/
+__pycache__/

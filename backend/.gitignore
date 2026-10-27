@@ -1,5 +1,14 @@
+# Secrets
 .env
-.bible_cache/
+gcp-service-account.json
 
-#Google Cloud Credentials
-.backend/gcp-service-account.json
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Local data and caches (rebuilt by the import scripts)
+*.db
+.bible_cache/
+.translate_cache.json

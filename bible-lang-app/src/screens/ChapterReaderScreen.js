@@ -2,25 +2,40 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchVerses, translateText } from '../api';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { fetchChapterAudio, fetchVerses, translateText } from '../api';
 import { colors, radius } from '../theme';
 import { speakSequence, speakText, stopSpeaking } from '../utils/speech';
 
 // Strip punctuation from the edges of a selected phrase before it is translated.
 const EDGES = /^[\s.,;:!?"“”«»()¿¡'’\-—]+|[\s.,;:!?"“”«»()¿¡'’\-—]+$/g;
 
+// 83.4 -> "1:23"
+const clock = (seconds) => {
+  const s = Math.max(0, Math.floor(seconds || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+
 // The "Read and listen" step: the chapter in the language being learned.
 //  - tap one word, then another, to select a phrase; Translate shows it in English (Google Translate)
-//  - Listen reads the whole chapter aloud, verse by verse
+//  - Listen plays the chapter's recording (from Supabase) when there is one,
+//    otherwise the phone reads it aloud verse by verse (text-to-speech)
 //  - Finish chapter (at the bottom) marks the step as done
 export default function ChapterReaderScreen({ title, chapterId, lang, onExit, onComplete }) {
   const [verses, setVerses] = useState(null);
   const [error, setError] = useState(null);
   const [selection, setSelection] = useState(null); // { a, b } = first and last selected word
   const [result, setResult] = useState(null); // { status: 'loading' | 'done' | 'error', text }
-  const [playing, setPlaying] = useState(null); // index of the verse being read aloud
+  const [playing, setPlaying] = useState(null); // index of the verse being read aloud (text-to-speech)
+  const [audioUrl, setAudioUrl] = useState(null); // the chapter recording, if this language has one
   const stopReading = useRef(null);
   const mounted = useRef(true);
+
+  // One audio player for the screen. It starts empty and is given the recording once we know
+  // its link; it is released automatically when the screen closes.
+  const player = useAudioPlayer(null);
+  const status = useAudioPlayerStatus(player);
+  const listening = audioUrl ? status.playing : playing !== null;
 
   useEffect(() => {
     mounted.current = true;
@@ -44,6 +59,25 @@ export default function ChapterReaderScreen({ title, chapterId, lang, onExit, on
       cancelled = true;
     };
   }, [chapterId, lang]);
+
+  // Ask the server whether this chapter has a recording. If the request fails we simply
+  // keep text-to-speech, so a missing recording never stops someone reading.
+  useEffect(() => {
+    let cancelled = false;
+    setAudioUrl(null);
+    fetchChapterAudio(chapterId, lang)
+      .then((data) => {
+        if (!cancelled) setAudioUrl(data.audio_url ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [chapterId, lang]);
+
+  useEffect(() => {
+    if (audioUrl) player.replace(audioUrl);
+  }, [audioUrl, player]);
 
   // Every word of the chapter in one flat list, so a selection can span verses.
   const { words, starts } = useMemo(() => {
@@ -81,17 +115,29 @@ export default function ChapterReaderScreen({ title, chapterId, lang, onExit, on
       const data = await translateText(selectedText, lang);
       if (mounted.current) setResult({ status: 'done', text: data.translation });
     } catch (err) {
-      const limit = String(err.message).includes('429');
+      // 429 = a translation limit was hit; the server's message says which one and when it resets.
+      const limited = err.status === 429;
       if (mounted.current) {
         setResult({
           status: 'error',
-          text: limit ? 'The daily translation limit has been reached. Try again tomorrow.' : `Couldn't translate: ${err.message}`,
+          text: limited ? err.detail || 'Translation limit reached. Try again later.' : `Couldn't translate: ${err.message}`,
         });
       }
     }
   };
 
   const toggleListening = () => {
+    if (audioUrl) {
+      if (status.playing) {
+        player.pause();
+        return;
+      }
+      stopSpeaking();
+      // At the end of the recording, Listen starts it again from the top.
+      if (status.duration > 0 && status.currentTime >= status.duration - 0.5) player.seekTo(0);
+      player.play();
+      return;
+    }
     if (playing !== null) {
       stopReading.current?.();
       return;
@@ -106,8 +152,11 @@ export default function ChapterReaderScreen({ title, chapterId, lang, onExit, on
     );
   };
 
+  const back10 = () => player.seekTo(Math.max(0, status.currentTime - 10));
+
   const finish = () => {
     stopReading.current?.();
+    player.pause();
     onComplete();
     onExit();
   };
@@ -124,15 +173,38 @@ export default function ChapterReaderScreen({ title, chapterId, lang, onExit, on
           disabled={!verses}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={playing !== null ? 'Stop listening' : 'Listen to the chapter'}
-          style={[styles.listen, playing !== null && styles.listenOn]}
+          accessibilityLabel={listening ? (audioUrl ? 'Pause' : 'Stop listening') : 'Listen to the chapter'}
+          style={[styles.listen, listening && styles.listenOn]}
         >
-          <Ionicons name={playing !== null ? 'stop' : 'volume-high'} size={18} color={playing !== null ? '#FFFFFF' : colors.lapisDark} />
-          <Text style={[styles.listenText, playing !== null && { color: '#FFFFFF' }]}>
-            {playing !== null ? 'Stop' : 'Listen'}
+          <Ionicons
+            name={listening ? (audioUrl ? 'pause' : 'stop') : 'volume-high'}
+            size={18}
+            color={listening ? '#FFFFFF' : colors.lapisDark}
+          />
+          <Text style={[styles.listenText, listening && { color: '#FFFFFF' }]}>
+            {listening ? (audioUrl ? 'Pause' : 'Stop') : 'Listen'}
           </Text>
         </Pressable>
       </View>
+
+      {audioUrl && (status.playing || status.currentTime > 0) && (
+        <View style={styles.audioBar}>
+          <Pressable onPress={back10} hitSlop={8} accessibilityRole="button" accessibilityLabel="Back 10 seconds">
+            <Ionicons name="play-back" size={20} color={colors.lapisDark} />
+          </Pressable>
+          <View style={styles.track}>
+            <View
+              style={[
+                styles.trackFill,
+                { width: `${status.duration > 0 ? Math.min(100, (status.currentTime / status.duration) * 100) : 0}%` },
+              ]}
+            />
+          </View>
+          <Text style={styles.time}>
+            {status.isBuffering && !status.isLoaded ? 'Loading…' : `${clock(status.currentTime)} / ${clock(status.duration)}`}
+          </Text>
+        </View>
+      )}
 
       {error ? (
         <View style={styles.center}>
@@ -153,7 +225,7 @@ export default function ChapterReaderScreen({ title, chapterId, lang, onExit, on
                   <Text style={styles.verseNumber}>{verse.verse_number} </Text>
                   {words.slice(starts[vi], end).map((w, k) => {
                     const g = starts[vi] + k;
-                    const on = selection && g >= selection.a && g <= selection.b;
+                    const on = selection && g >= selection.a && g <= selection.b; 
                     return (
                       <Text key={g} onPress={() => tapWord(g)} style={on ? styles.wordOn : undefined}>
                         {w.text}{' '}
@@ -181,7 +253,14 @@ export default function ChapterReaderScreen({ title, chapterId, lang, onExit, on
             <Pressable onPress={translate} style={[styles.panelButton, styles.panelPrimary]} accessibilityRole="button">
               <Text style={styles.panelPrimaryText}>Translate</Text>
             </Pressable>
-            <Pressable onPress={() => speakText(selectedText, lang)} style={styles.panelButton} accessibilityRole="button">
+            <Pressable
+              onPress={() => {
+                player.pause(); // don't talk over the recording
+                speakText(selectedText, lang);
+              }}
+              style={styles.panelButton}
+              accessibilityRole="button"
+            >
               <Text style={styles.panelButtonText}>Listen</Text>
             </Pressable>
             <Pressable
@@ -225,6 +304,10 @@ const styles = StyleSheet.create({
   },
   listenOn: { backgroundColor: colors.madder, borderColor: colors.madder },
   listenText: { fontWeight: '700', color: colors.lapisDark },
+  audioBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingBottom: 8 },
+  track: { flex: 1, height: 6, borderRadius: 3, backgroundColor: colors.line, overflow: 'hidden' },
+  trackFill: { height: '100%', backgroundColor: colors.lapis },
+  time: { fontSize: 13, fontWeight: '700', color: colors.muted, fontVariant: ['tabular-nums'], minWidth: 78, textAlign: 'right' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   message: { fontSize: 16, color: colors.muted, textAlign: 'center' },
   content: { padding: 16, paddingBottom: 32, gap: 6 },

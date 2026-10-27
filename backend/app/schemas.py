@@ -106,3 +106,8 @@ class VerseOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ChapterAudioOut(BaseModel):
+    """Link to the recording of a whole chapter, or null if there isn't one in that language."""
+    audio_url: Optional[str] = None

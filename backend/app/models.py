@@ -66,6 +66,10 @@ class Chapter(Base):
     id = Column(Integer, primary_key=True)
     book_id = Column(Integer, ForeignKey("books.id"), nullable=False)
     chapter_number = Column(Integer, nullable=False)
+    audio_url_fr = Column(String, nullable=True)
+    audio_url_es = Column(String, nullable=True)
+    audio_url_en = Column(String, nullable=True)
+
 
     book = relationship("Book", back_populates="chapters")
     verses = relationship("Verse", back_populates="chapter")
@@ -81,6 +85,9 @@ class Verse(Base):
     lang = Column(Enum(LanguageCode), nullable=False)
     text = Column(Text, nullable=False)
     audio_url = Column(String, nullable=True)
+
+    audio_start = Column(Float, nullable=True)
+    audio_end = Column(Float, nullable=True)
 
     chapter = relationship("Chapter", back_populates="verses")
 
