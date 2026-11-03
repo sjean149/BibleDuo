@@ -9,14 +9,21 @@
 //     steps: { 'fr:123': ['vocab', 'lesson'] }, // finished steps, per language and chapter id
 //     days: ['2026-10-17', '2026-10-18'],       // every day the learner finished a step
 //     last: { fr: 123 },                        // chapter the learner last worked on, per language
-//     premium: false                            // unlimited hearts (set once payments are connected)
+//     premium: false,                           // unlimited hearts (set once payments are connected)
+//     speed: 1                                  // listening speed for recordings and read-aloud
 //   }
-import { HEART_REFILL_MINUTES, MAX_HEARTS, STEPS, UNLOCK_EVERYTHING } from './rules';
+import { HEART_REFILL_MINUTES, MAX_HEARTS, SPEEDS, STEPS, UNLOCK_EVERYTHING } from './rules';
 
-const REFILL_MS = HEART_REFILL_MINUTES * 60 * 1000;
+const REFILL_MS = HEART_REFILL_MINUTES * 30 * 1000;
 
 export function createInitialState(now) {
-  return { lang: 'fr', hearts: MAX_HEARTS, heartsUpdatedAt: now, steps: {}, days: [], last: {}, premium: false };
+  return { lang: 'fr', hearts: MAX_HEARTS, heartsUpdatedAt: now, steps: {}, days: [], last: {}, premium: false, speed: 1 };
+}
+
+// The next listening speed after this one (wraps from the fastest back to the slowest).
+export function nextSpeed(speed) {
+  const i = SPEEDS.indexOf(speed);
+  return SPEEDS[(i + 1) % SPEEDS.length] ?? 1;
 }
 
 // ---------------------------------------------------------------- dates
@@ -90,18 +97,18 @@ export function completeStep(state, lang, chapterId, step, now) {
   };
 }
 
-// Start over: progress, streak and hearts are cleared; the chosen language and any
-// unlimited plan are kept.
+// Start over: progress, streak and hearts are cleared; the chosen language, listening speed and
+// any unlimited plan are kept.
 export function resetProgress(state, now) {
-  return { ...createInitialState(now), lang: state.lang, premium: !!state.premium };
+  return { ...createInitialState(now), lang: state.lang, premium: !!state.premium, speed: state.speed ?? 1 };
 }
 
 // Which of the three steps exist for this level (a level only has what the data provides).
 export function availableSteps(level) {
   const out = [];
   if (level.vocab_lesson_id) out.push('vocab');
-  if (level.practice_lesson_id) out.push('lesson');
   if (level.has_text) out.push('reading');
+  if (level.practice_lesson_id) out.push('lesson');
   return out;
 }
 
@@ -111,8 +118,8 @@ export function levelProgress(state, lang, level) {
   return { available, done, complete: available.length > 0 && done.length === available.length };
 }
 
-// Key words come first, then the verse practice. Reading is always open, so a learner who is
-// out of hearts can still read and listen.
+// Key words come first, then reading, then the lesson (which waits for both, and is optional:
+// reading alone opens the next chapter). Reading is always open within an open chapter.
 export function isStepUnlocked(state, lang, level, step, unlockAll = UNLOCK_EVERYTHING) {
   if (unlockAll) return true;
   if (step === 'reading') return true; // reading is free and never waits for the other steps
@@ -121,21 +128,31 @@ export function isStepUnlocked(state, lang, level, step, unlockAll = UNLOCK_EVER
   return before.every((s) => isStepDone(state, lang, level.chapter_id, s));
 }
 
+// A chapter is passed once it has been read (or, if it has no text, once its steps are done).
+// Passing a chapter opens the next one, so the grammar lesson can be skipped and done later.
+export function isLevelPassed(state, lang, level) {
+  if (level.has_text) return isStepDone(state, lang, level.chapter_id, 'reading');
+  return levelProgress(state, lang, level).complete;
+}
+
 // Status of every level on the path:
 //   'done'    all its steps are finished
 //   'current' the level to continue with (highlighted with a START tag)
-//   'open'    playable now: the first unfinished chapter of any other book
-//   'locked'  not reachable yet: an earlier chapter of the same book is not finished
+//   'open'    playable now: its book's earlier chapters have all been read
+//   'locked'  not reachable yet: an earlier chapter of the same book has not been read
 // Every book is its own track, so a learner can start anywhere. Within a book the chapters are
-// chained: finishing Matthew 1 opens Matthew 2, and so on.
-// The 'current' level is the next one in the book the learner last worked on. If that book is
-// finished (or nothing has been played yet) it is the first book started, else the first book.
+// chained: reading Matthew 1 opens Matthew 2, and so on.
+// The 'current' level is the next unread chapter in the book the learner last worked on (or,
+// when every open chapter is read, the first one with a step left). If that book is finished (or
+// nothing has been played yet) it is the first book started, else the first book.
 export function computeStatuses(state, lang, units, unlockAll = UNLOCK_EVERYTHING) {
   const statuses = {};
-  const frontiers = []; // one per book: its first unfinished playable chapter
+  const frontiers = []; // one per book: the chapter to continue with
   const lastChapter = state.last?.[lang];
   for (const unit of units) {
-    let frontier = null;
+    let unread = null; // first open chapter not read yet
+    let unfinished = null; // first open chapter with a step left (e.g. a skipped grammar lesson)
+    let reachable = true; // every earlier chapter of this book has been passed
     let started = false;
     let hasLast = false;
     for (const level of unit.levels) {
@@ -148,13 +165,16 @@ export function computeStatuses(state, lang, units, unlockAll = UNLOCK_EVERYTHIN
       if (done.length > 0) started = true;
       if (complete) {
         statuses[level.chapter_id] = 'done';
-      } else if (frontier === null) {
-        frontier = level.chapter_id;
+      } else if (reachable || unlockAll) {
         statuses[level.chapter_id] = 'open';
+        if (reachable && unfinished === null) unfinished = level.chapter_id;
+        if (reachable && unread === null && !isLevelPassed(state, lang, level)) unread = level.chapter_id;
       } else {
-        statuses[level.chapter_id] = unlockAll ? 'open' : 'locked';
+        statuses[level.chapter_id] = 'locked';
       }
+      if (!isLevelPassed(state, lang, level)) reachable = false;
     }
+    const frontier = unread ?? unfinished;
     if (frontier !== null) frontiers.push({ chapterId: frontier, started, hasLast });
   }
   const current = frontiers.find((f) => f.hasLast) ?? frontiers.find((f) => f.started) ?? frontiers[0];

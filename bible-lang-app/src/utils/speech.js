@@ -3,11 +3,22 @@ import * as Speech from 'expo-speech';
 
 export const LANG_TAGS = { fr: 'fr-FR', es: 'es-ES', en: 'en-US' };
 
+// The voice is a little slower than normal for learners; the listening speed (0.5x to 1.5x,
+// chosen by the learner and set by ProgressContext) multiplies it.
+const BASE_RATE = 0.85;
+let speedFactor = 1;
+
+export function setSpeechSpeed(speed) {
+  speedFactor = speed || 1;
+}
+
+const voiceRate = () => BASE_RATE * speedFactor;
+
 // Read text aloud with the phone's (or browser's) built-in voice. Free, no backend needed.
 export function speakText(text, lang) {
   try {
     Speech.stop();
-    Speech.speak(text, { language: LANG_TAGS[lang] ?? 'en-US', rate: 0.85 });
+    Speech.speak(text, { language: LANG_TAGS[lang] ?? 'en-US', rate: voiceRate() });
   } catch {
     // no voice available: the exercise still works, just silently
   }
@@ -38,7 +49,7 @@ export function speakSequence(texts, lang, { onStart, onEnd } = {}) {
     onStart?.(i);
     Speech.speak(texts[i], {
       language,
-      rate: 0.85,
+      rate: voiceRate(), // read per verse, so a speed change applies from the next verse
       onDone: () => speakAt(i + 1),
       onError: finish,
     });

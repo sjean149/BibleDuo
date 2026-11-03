@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider } from './src/auth/AuthContext';
+import { sceneForChapter } from './src/art/scenes';
 import { ProgressProvider, useProgress } from './src/progress/ProgressContext';
 import { colors } from './src/theme';
 import BottomNav from './src/components/BottomNav';
@@ -20,8 +22,8 @@ import StreakScreen from './src/screens/StreakScreen';
 //   { name: 'read', bookOrder }                        books, or the chapters of one book
 //   { name: 'profile' }
 //   { name: 'streak', back }   { name: 'hearts', back }
-//   { name: 'lesson',  lessonId, chapterId, step, lang, back }
-//   { name: 'reading', title, chapterId, lang, back }
+//   { name: 'lesson',  lessonId, chapterId, step, lang, scene, back }
+//   { name: 'reading', title, chapterId, lang, scene, back }      scene: the chapter's background
 const HOME = { name: 'home' };
 const TABS = ['home', 'read', 'profile'];
 
@@ -53,6 +55,7 @@ function Root() {
       return (
         <LessonScreen
           lessonId={screen.lessonId}
+          scene={screen.scene}
           onExit={goBack}
           onComplete={() => completeStep(screen.lang, screen.chapterId, screen.step)}
         />
@@ -64,6 +67,7 @@ function Root() {
           title={screen.title}
           chapterId={screen.chapterId}
           lang={screen.lang}
+          scene={screen.scene}
           onExit={goBack}
           onComplete={() => completeStep(screen.lang, screen.chapterId, 'reading')}
         />
@@ -77,8 +81,8 @@ function Root() {
           <ReadScreen
             bookOrder={screen.bookOrder ?? null}
             onSelectBook={(bookOrder) => setScreen({ name: 'read', bookOrder })}
-            onOpenChapter={({ title, chapterId, bookOrder }) =>
-              setScreen({ name: 'reading', title, chapterId, lang, back: { name: 'read', bookOrder } })
+            onOpenChapter={({ title, chapterId, bookOrder, scene }) =>
+              setScreen({ name: 'reading', title, chapterId, lang, scene, back: { name: 'read', bookOrder } })
             }
             onOpenStreak={openStreak}
             onOpenHearts={openHearts}
@@ -93,11 +97,12 @@ function Root() {
             onOpenHearts={openHearts}
             onStartStep={({ unit, level, step }) => {
               const chapterId = level.chapter_id;
+              const scene = sceneForChapter(unit.name, level.chapter_number);
               if (step === 'reading') {
-                setScreen({ name: 'reading', title: `${unit.display_name} ${level.chapter_number}`, chapterId, lang, back: HOME });
+                setScreen({ name: 'reading', title: `${unit.display_name} ${level.chapter_number}`, chapterId, lang, scene, back: HOME });
               } else {
                 const lessonId = step === 'vocab' ? level.vocab_lesson_id : level.practice_lesson_id;
-                setScreen({ name: 'lesson', lessonId, chapterId, step, lang, back: HOME });
+                setScreen({ name: 'lesson', lessonId, chapterId, step, lang, scene, back: HOME });
               }
             }}
           />
@@ -117,12 +122,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <ProgressProvider>
-        <View style={{ flex: 1 }}>
-          <Root />
-          <WakingBanner />
-        </View>
-      </ProgressProvider>
+      <AuthProvider>
+        <ProgressProvider>
+          <View style={{ flex: 1 }}>
+            <Root />
+            <WakingBanner />
+          </View>
+        </ProgressProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

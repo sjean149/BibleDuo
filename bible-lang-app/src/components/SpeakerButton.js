@@ -1,11 +1,10 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
-import * as Speech from 'expo-speech';
-import { SPEECH_LANG } from '../config';
 import { colors } from '../theme';
+import { speakText } from '../utils/speech';
 
+// Read a word or sentence aloud, at the learner's listening speed.
 export function speak(text, lang) {
-  Speech.stop();
-  Speech.speak(text, { language: SPEECH_LANG[lang] || 'en-US', rate: 0.85 });
+  speakText(text, lang);
 }
 
 export default function SpeakerButton({ text, lang }) {

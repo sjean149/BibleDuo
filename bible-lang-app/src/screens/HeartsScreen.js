@@ -6,7 +6,7 @@ import { APP_NAME } from '../appInfo';
 import { colors, radius } from '../theme';
 import { formatCountdown } from '../progress/logic';
 import { useProgress } from '../progress/ProgressContext';
-import { HEART_REFILL_MINUTES, MAX_HEARTS } from '../progress/rules';
+import { HEART_REFILL_MINUTES, MAX_HEARTS, UNLIMITED_HEARTS } from '../progress/rules';
 
 const PERKS = [
   'Unlimited hearts, so a wrong answer never stops a lesson',
@@ -20,7 +20,8 @@ const PERKS = [
 export default function HeartsScreen({ onExit, onRead }) {
   const { hearts, premium, msToNextHeart, setPremium } = useProgress();
   const [notice, setNotice] = useState(null);
-  const testing = typeof __DEV__ !== 'undefined' && __DEV__;
+  // The test switch does nothing while everyone has unlimited hearts, so it is hidden then.
+  const testing = typeof __DEV__ !== 'undefined' && __DEV__ && !UNLIMITED_HEARTS;
 
   const onGetUnlimited = () => {
     // Later: start the PayPal checkout here, and only call setPremium(true) after the

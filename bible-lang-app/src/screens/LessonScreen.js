@@ -18,9 +18,11 @@ import { colors, radius } from '../theme';
 import { gradeExercise, SUPPORTED_TYPES } from '../utils/grade';
 import ExerciseView from '../components/ExtendedExerciseView';
 import ProgressBar from '../components/ProgressBar';
+import Character from '../components/Character';
+import SceneBackground from '../components/SceneBackground';
 import { useProgress } from '../progress/ProgressContext';
 
-export default function LessonScreen({ lessonId, onExit, onComplete }) {
+export default function LessonScreen({ lessonId, scene, onExit, onComplete }) {
   // Hearts are shared by the whole app (they show in the top bar and refill over time).
   const { hearts, loseHeart } = useProgress();
   const [lesson, setLesson] = useState(null);
@@ -92,7 +94,18 @@ export default function LessonScreen({ lessonId, onExit, onComplete }) {
   if (finished) {
     const outOfHearts = finished === 'out_of_hearts';
     return (
-      <Centered>
+      <Centered scene={scene}>
+        {/* The camel waits patiently with you; a finished lesson gets Jesus and the lamb. */}
+        <View style={styles.cast}>
+          {outOfHearts ? (
+            <Character name="camel" size={130} />
+          ) : (
+            <>
+              <Character name="jesus" size={130} />
+              <Character name="lamb" size={96} />
+            </>
+          )}
+        </View>
         <Text style={styles.title}>{outOfHearts ? 'Out of hearts' : 'Lesson complete'}</Text>
         <Text style={styles.body}>
           {outOfHearts
@@ -127,6 +140,7 @@ export default function LessonScreen({ lessonId, onExit, onComplete }) {
 
   return (
     <SafeAreaView style={styles.screen}>
+      {scene ? <SceneBackground scene={scene} /> : null}
       <View style={styles.header}>
         <Pressable onPress={onExit} hitSlop={12} accessibilityLabel="Back to the path">
           <Text style={styles.back}>‹</Text>
@@ -183,9 +197,10 @@ export default function LessonScreen({ lessonId, onExit, onComplete }) {
   );
 }
 
-function Centered({ children }) {
+function Centered({ children, scene }) {
   return (
     <SafeAreaView style={[styles.screen, styles.centered]}>
+      {scene ? <SceneBackground scene={scene} height={340} /> : null}
       <View style={styles.centerBox}>{children}</View>
     </SafeAreaView>
   );
@@ -215,6 +230,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.mist },
   centered: { justifyContent: 'center' },
   centerBox: { padding: 28, gap: 14 },
+  cast: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', marginBottom: 8 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

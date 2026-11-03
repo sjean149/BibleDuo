@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { loadJourney, peekJourney } from '../journeyStore';
 import { colors, radius } from '../theme';
 import { isStepDone } from '../progress/logic';
+import { sceneForChapter } from '../art/scenes';
 import { useProgress } from '../progress/ProgressContext';
 import { UNIT_COLORS } from '../unitColors';
 import TopBar from '../components/TopBar';
@@ -72,7 +73,7 @@ export default function ReadScreen({ bookOrder, onSelectBook, onOpenChapter, onO
                 <Pressable
                   key={level.chapter_id}
                   disabled={!ok}
-                  onPress={() => onOpenChapter({ title: `${book.display_name} ${level.chapter_number}`, chapterId: level.chapter_id, bookOrder: book.order })}
+                  onPress={() => onOpenChapter({ title: `${book.display_name} ${level.chapter_number}`, chapterId: level.chapter_id, bookOrder: book.order, scene: sceneForChapter(book.name, level.chapter_number) })}
                   accessibilityRole="button"
                   accessibilityLabel={`Chapter ${level.chapter_number}${read ? ', read' : ''}`}
                   style={[styles.chapter, { borderColor: read ? colors.leaf : ok ? color : colors.line }, read && styles.chapterRead, !ok && styles.chapterOff]}

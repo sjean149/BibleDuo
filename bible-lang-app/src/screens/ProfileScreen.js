@@ -6,8 +6,10 @@ import { APP_NAME } from '../appInfo';
 import { colors, radius } from '../theme';
 import { longestStreak } from '../progress/logic';
 import { useProgress } from '../progress/ProgressContext';
+import { GOOGLE_CONFIGURED, useAuth } from '../auth/AuthContext';
 import Flag from '../components/Flag';
 import LanguagePicker from '../components/LanguagePicker';
+import SpeedButton from '../components/SpeedButton';
 
 const LANGUAGE_NAMES = { fr: 'French', es: 'Spanish', en: 'English' };
 
@@ -21,10 +23,11 @@ function Stat({ icon, color, value, label }) {
   );
 }
 
-// The profile page. There is no account yet (Google sign-in comes later), so it shows the
-// learner's progress on this device and the settings that exist today.
+// The profile page: Google sign-in, the learner's progress and the settings. Progress is still
+// saved on this device only; signing in does not sync it yet.
 export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
   const { state, lang, streak, days, premium, hearts, resetProgress } = useProgress();
+  const { user, ready, busy, error: authError, signIn, signOut } = useAuth();
   const [picking, setPicking] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
@@ -40,15 +43,31 @@ export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
           <View style={styles.avatar}>
             <Ionicons name="person" size={44} color={colors.lapisDark} />
           </View>
-          <Text style={styles.name}>Guest</Text>
-          <Text style={styles.sub}>Your progress is saved on this device.</Text>
+          <Text style={styles.name}>{user ? user.display_name || user.email : 'Guest'}</Text>
+          <Text style={styles.sub}>{user ? user.email : 'Your progress is saved on this device.'}</Text>
         </View>
 
-        <Pressable style={[styles.row, styles.rowOff]} disabled accessibilityRole="button" accessibilityLabel="Sign in with Google, coming soon">
-          <Ionicons name="logo-google" size={22} color={colors.muted} />
-          <Text style={styles.rowText}>Sign in with Google</Text>
-          <Text style={styles.soon}>Coming soon</Text>
-        </Pressable>
+        {user ? (
+          <Pressable onPress={signOut} style={styles.row} accessibilityRole="button" accessibilityLabel="Sign out">
+            <Ionicons name="log-out-outline" size={22} color={colors.muted} />
+            <Text style={[styles.rowText, styles.rowBody]}>Sign out</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={signIn}
+            disabled={!ready || busy}
+            style={[styles.row, (!ready || busy) && styles.rowOff]}
+            accessibilityRole="button"
+            accessibilityLabel="Sign in with Google"
+          >
+            <Ionicons name="logo-google" size={22} color={ready ? colors.lapis : colors.muted} />
+            <View style={styles.rowBody}>
+              <Text style={styles.rowText}>{busy ? 'Signing in…' : 'Sign in with Google'}</Text>
+              {authError ? <Text style={[styles.rowSub, { color: colors.madder }]}>{authError}</Text> : null}
+            </View>
+            {!GOOGLE_CONFIGURED && <Text style={styles.soon}>Not set up</Text>}
+          </Pressable>
+        )}
 
         <View style={styles.stats}>
           <Stat icon="flame" color="#FF9600" value={streak} label="Day streak" />
@@ -65,6 +84,15 @@ export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.muted} />
         </Pressable>
+
+        <View style={styles.row}>
+          <Ionicons name="speedometer" size={24} color={colors.lapis} />
+          <View style={styles.rowBody}>
+            <Text style={styles.rowText}>Listening speed</Text>
+            <Text style={styles.rowSub}>Recordings and read-aloud. Tap to change</Text>
+          </View>
+          <SpeedButton />
+        </View>
 
         <Pressable onPress={onOpenHearts} style={styles.row} accessibilityRole="button" accessibilityLabel="Hearts and plan">
           <Ionicons name="heart" size={26} color={colors.madder} />

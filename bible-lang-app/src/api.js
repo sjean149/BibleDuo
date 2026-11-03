@@ -116,6 +116,16 @@ export function fetchJourney(lang) {
   return apiGet(`/journey?lang=${lang}`);
 }
 
+// Google sign-in: trade the Google ID token for our own session token ({ access_token }).
+export function signInWithGoogle(idToken) {
+  return apiPost('/auth/google', { id_token: idToken });
+}
+
+// The signed-in learner ({ id, email, display_name, ... }), or a 401 error if the session expired.
+export function fetchMe(accessToken) {
+  return request('/auth/me', { headers: { Authorization: `Bearer ${accessToken}` } });
+}
+
 export function translateText(text, sourceLang, targetLang = 'en') {
   return apiPost('/translate', { text, source_lang: sourceLang, target_lang: targetLang });
 }

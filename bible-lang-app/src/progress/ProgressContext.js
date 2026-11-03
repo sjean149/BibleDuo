@@ -10,7 +10,8 @@ import {
   refillHearts,
   resetProgress as resetProgressLogic,
 } from './logic';
-import { DEFAULT_LANG, DEMO_MODE, MAX_HEARTS } from './rules';
+import { DEFAULT_LANG, DEMO_MODE, MAX_HEARTS, UNLIMITED_HEARTS } from './rules';
+import { setSpeechSpeed } from '../utils/speech';
 
 const ProgressContext = createContext(null);
 
@@ -26,7 +27,8 @@ export function ProgressProvider({ children }) {
       if (!alive) return;
       const t = Date.now();
       const fresh = { ...createInitialState(t), lang: DEFAULT_LANG }; // used only by first-time visitors
-      const demo = DEMO_MODE ? { premium: true } : {}; // a demo build always has unlimited hearts
+      // Unlimited hearts for everyone (UNLIMITED_HEARTS) or in a demo build.
+      const demo = DEMO_MODE || UNLIMITED_HEARTS ? { premium: true } : {};
       setState(refillHearts({ ...fresh, ...(saved ?? {}), ...demo }, t));
     });
     return () => {
@@ -38,6 +40,12 @@ export function ProgressProvider({ children }) {
   useEffect(() => {
     if (state) saveState(state);
   }, [state]);
+
+  // Every read-aloud voice in the app follows the chosen listening speed.
+  const speed = state?.speed ?? 1;
+  useEffect(() => {
+    setSpeechSpeed(speed);
+  }, [speed]);
 
   // A slow clock: gives back hearts and keeps the countdown fresh while the app is open.
   useEffect(() => {
@@ -55,7 +63,8 @@ export function ProgressProvider({ children }) {
       loseHeart: () => setState((s) => loseHeartLogic(s, Date.now())),
       completeStep: (lang, chapterId, step) =>
         setState((s) => completeStepLogic(s, lang, chapterId, step, Date.now())),
-      setPremium: (premium) => setState((s) => ({ ...s, premium: !!premium })),
+      setPremium: (premium) => setState((s) => ({ ...s, premium: UNLIMITED_HEARTS || !!premium })),
+      setSpeed: (speed) => setState((s) => ({ ...s, speed })),
       resetProgress: () => setState((s) => resetProgressLogic(s, Date.now())),
     }),
     []
@@ -69,6 +78,7 @@ export function ProgressProvider({ children }) {
       state,
       lang: state.lang,
       premium: !!state.premium,
+      speed: state.speed ?? 1, // listening speed (older saves have none: normal speed)
       hearts: state.premium ? MAX_HEARTS : state.hearts, // unlimited plan: always full
       msToNextHeart: msToNextHeart(state, now),
       days: state.days,

@@ -3,18 +3,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, radius } from '../theme';
 import { STEPS } from '../progress/rules';
 import { formatCountdown } from '../progress/logic';
+import { SCENE_NAMES } from '../art/scenes';
+import { SceneBanner } from './SceneBackground';
 
 const STEP_INFO = {
   vocab: { icon: 'school', title: 'Key words', blurb: 'Learn the most useful words in this chapter' },
-  lesson: { icon: 'star', title: 'Practice the verses', blurb: 'Translate, fill in, reorder and speak' },
   reading: { icon: 'book', title: 'Read and listen', blurb: 'Read the chapter, hear it, tap any phrase to translate' },
+  lesson: { icon: 'star', title: 'Practice the verses', blurb: 'Translate, fill in, reorder and speak' },
 };
+// Languages whose lesson step teaches a grammar rule (the others are still verse practice).
+const GRAMMAR_INFO = {
+  icon: 'star',
+  title: 'Grammar lesson',
+  blurb: 'Optional: learn a rule, then use it in the verses you just read',
+};
+const GRAMMAR_LANGS = ['es'];
 const NEEDS_HEARTS = ['vocab', 'lesson']; // reading never costs hearts
 
 // The panel that slides up when a level is tapped: its three steps, in order.
 export default function StepSheet({
   visible,
   title,
+  lang,
+  scene, // the chapter's setting, shown as a banner (src/art/scenes.js)
   color,
   available,
   done,
@@ -32,10 +43,16 @@ export default function StepSheet({
         {/* The inner Pressable swallows taps so touching the panel doesn't close it. */}
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
+          {scene ? (
+            <View style={styles.banner}>
+              <SceneBanner scene={scene} height={96} />
+              <Text style={styles.bannerLabel}>{SCENE_NAMES[scene]}</Text>
+            </View>
+          ) : null}
           <Text style={styles.title}>{title}</Text>
 
           {STEPS.map((step, i) => {
-            const info = STEP_INFO[step];
+            const info = step === 'lesson' && GRAMMAR_LANGS.includes(lang) ? GRAMMAR_INFO : STEP_INFO[step];
             const exists = available.includes(step);
             const finished = done.includes(step);
             const open = exists && isUnlocked(step);
@@ -109,6 +126,20 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   handle: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: colors.line },
+  banner: { borderRadius: 16, overflow: 'hidden' },
+  bannerLabel: {
+    position: 'absolute',
+    left: 10,
+    bottom: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.ink,
+  },
   title: { fontSize: 22, fontWeight: '800', color: colors.ink, marginBottom: 4 },
   row: {
     flexDirection: 'row',

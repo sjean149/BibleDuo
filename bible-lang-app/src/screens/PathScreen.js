@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadJourney, peekJourney } from '../journeyStore';
 import { UNIT_COLORS } from '../unitColors';
+import { sceneForChapter } from '../art/scenes';
 import { colors, radius } from '../theme';
 import { computeStatuses, isStepUnlocked, levelProgress, unitProgress } from '../progress/logic';
 import { useProgress } from '../progress/ProgressContext';
@@ -13,6 +14,9 @@ import TopBar from '../components/TopBar';
 
 // Sideways shift for each level in a unit, which makes the path wind like Duolingo's.
 const OFFSETS = [0, 38, 64, 38, 0, -38, -64, -38];
+
+// How long the book list takes to fade out (React Native's "fade" Modal animation is 300 ms).
+const MENU_FADE_MS = 350;
 
 export default function PathScreen({ onStartStep, onOpenStreak, onOpenHearts }) {
   const { state, lang, hearts, msToNextHeart } = useProgress();
@@ -56,11 +60,15 @@ export default function PathScreen({ onStartStep, onOpenStreak, onOpenHearts }) 
     }, 80);
   };
 
-  // Jump to the top of a book chosen from the list.
+  // Jump to the top of a book chosen from the list. The scroll waits until the list has finished
+  // fading out (MENU_FADE_MS): on web the closing list puts focus back on the banner that opened
+  // it, and that focus would otherwise drag the path straight back to where it was.
   const jumpToUnit = (unit) => {
     setMenuUnit(null);
-    const y = unitY.current[unit.order] ?? 0;
-    setTimeout(() => scrollRef.current?.scrollTo({ y: Math.max(0, y - 8), animated: true }), 60);
+    setTimeout(() => {
+      const y = unitY.current[unit.order] ?? 0;
+      scrollRef.current?.scrollTo({ y: Math.max(0, y - 8), animated: false });
+    }, MENU_FADE_MS);
   };
 
   const sheetLevel = selected?.level;
@@ -176,6 +184,8 @@ export default function PathScreen({ onStartStep, onOpenStreak, onOpenHearts }) 
       <StepSheet
         visible={!!selected}
         title={selected ? `${selected.unit.display_name} ${selected.level.chapter_number}` : ''}
+        lang={lang}
+        scene={selected ? sceneForChapter(selected.unit.name, selected.level.chapter_number) : null}
         color={sheetColor}
         available={sheetProgress.available}
         done={sheetProgress.done}

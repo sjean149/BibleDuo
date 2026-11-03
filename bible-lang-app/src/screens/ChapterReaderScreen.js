@@ -6,6 +6,9 @@ import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { fetchChapterAudio, fetchVerses, translateText } from '../api';
 import { colors, radius } from '../theme';
 import { speakSequence, speakText, stopSpeaking } from '../utils/speech';
+import SceneBackground from '../components/SceneBackground';
+import SpeedButton from '../components/SpeedButton';
+import { useProgress } from '../progress/ProgressContext';
 
 // Strip punctuation from the edges of a selected phrase before it is translated.
 const EDGES = /^[\s.,;:!?"“”«»()¿¡'’\-—]+|[\s.,;:!?"“”«»()¿¡'’\-—]+$/g;
@@ -20,8 +23,9 @@ const clock = (seconds) => {
 //  - tap one word, then another, to select a phrase; Translate shows it in English (Google Translate)
 //  - Listen plays the chapter's recording (from Supabase) when there is one,
 //    otherwise the phone reads it aloud verse by verse (text-to-speech)
+//  - the speed button (0.5x to 1.5x) sets how fast both of those play
 //  - Finish chapter (at the bottom) marks the step as done
-export default function ChapterReaderScreen({ title, chapterId, lang, onExit, onComplete }) {
+export default function ChapterReaderScreen({ title, chapterId, lang, scene, onExit, onComplete }) {
   const [verses, setVerses] = useState(null);
   const [error, setError] = useState(null);
   const [selection, setSelection] = useState(null); // { a, b } = first and last selected word
@@ -30,6 +34,7 @@ export default function ChapterReaderScreen({ title, chapterId, lang, onExit, on
   const [audioUrl, setAudioUrl] = useState(null); // the chapter recording, if this language has one
   const stopReading = useRef(null);
   const mounted = useRef(true);
+  const { speed } = useProgress(); // listening speed, changed with the speed button
 
   // One audio player for the screen. It starts empty and is given the recording once we know
   // its link; it is released automatically when the screen closes.
@@ -78,6 +83,12 @@ export default function ChapterReaderScreen({ title, chapterId, lang, onExit, on
   useEffect(() => {
     if (audioUrl) player.replace(audioUrl);
   }, [audioUrl, player]);
+
+  // Play the recording at the learner's listening speed ('high' keeps voices at their normal pitch).
+  // Set again once the recording has loaded, because loading a new one resets the speed.
+  useEffect(() => {
+    if (audioUrl) player.setPlaybackRate(speed, 'high');
+  }, [speed, audioUrl, status.isLoaded, player]);
 
   // Every word of the chapter in one flat list, so a selection can span verses.
   const { words, starts } = useMemo(() => {
@@ -163,11 +174,13 @@ export default function ChapterReaderScreen({ title, chapterId, lang, onExit, on
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+      {scene ? <SceneBackground scene={scene} height={200} /> : null}
       <View style={styles.header}>
         <Pressable onPress={onExit} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back to the path">
           <Ionicons name="chevron-back" size={28} color={colors.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{title}</Text>
+        <SpeedButton />
         <Pressable
           onPress={toggleListening}
           disabled={!verses}

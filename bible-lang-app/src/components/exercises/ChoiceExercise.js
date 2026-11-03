@@ -30,8 +30,9 @@ export default function ChoiceExercise({ exercise, lang, locked, onChange }) {
   return (
     <View>
       <Text style={styles.instruction}>{prompt.instruction}</Text>
-      {isListen ? null : <Text style={styles.word}>{word}</Text>}
-      <SpeakerButton text={word} lang={lang} />
+      {isListen ? null : <Text style={[styles.word, word.length > 24 && styles.sentence]}>{word}</Text>}
+      {/* Concept questions are in English, so they have no Listen button. */}
+      {prompt.audio === false ? null : <SpeakerButton text={word} lang={lang} />}
 
       <View style={styles.options}>
         {options.map((option) => {
@@ -64,6 +65,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 14,
   },
+  sentence: { fontSize: 22, lineHeight: 32, textAlign: 'left' }, // whole verses and questions
   options: { marginTop: 28, gap: 10 },
   option: {
     paddingVertical: 16,
