@@ -17,7 +17,7 @@ const GRAMMAR_INFO = {
   title: 'Grammar lesson',
   blurb: 'Optional: learn a rule, then use it in the verses you just read',
 };
-const GRAMMAR_LANGS = ['es'];
+const GRAMMAR_LANGS = ['es', 'fr', 'en'];
 const NEEDS_HEARTS = ['vocab', 'lesson']; // reading never costs hearts
 
 // The panel that slides up when a level is tapped: its three steps, in order.

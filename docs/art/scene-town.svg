@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="town-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#9FD5F2"/><stop offset="1" stop-color="#FDF6E8"/>
+  </linearGradient></defs>
+  <rect width="400" height="300" fill="url(#town-sky)"/>
+  
+  <g fill="#FFFFFF" opacity="0.9" transform="translate(50 50) scale(1)">
+    <ellipse cx="0" cy="0" rx="22" ry="10"/><ellipse cx="16" cy="-6" rx="16" ry="11"/><ellipse cx="32" cy="0" rx="18" ry="9"/>
+  </g>
+  <g fill="#FFFFFF" opacity="0.9" transform="translate(300 70) scale(0.8)">
+    <ellipse cx="0" cy="0" rx="22" ry="10"/><ellipse cx="16" cy="-6" rx="16" ry="11"/><ellipse cx="32" cy="0" rx="18" ry="9"/>
+  </g>
+  <path d="M0 170 Q100 140 200 160 T400 150 V300 H0Z" fill="#B8D8A0"/>
+  <g fill="#E9D8B4">
+    <rect x="150" y="96" width="100" height="64"/>
+    <rect x="136" y="88" width="128" height="12"/>
+  </g>
+  <g fill="#D8C29A"><rect x="166" y="112" width="8" height="48"/><rect x="186" y="112" width="8" height="48"/><rect x="206" y="112" width="8" height="48"/><rect x="226" y="112" width="8" height="48"/></g>
+  <rect x="190" y="76" width="20" height="12" fill="#F2C94C"/>
+  <g fill="#F1E3C6">
+    <rect x="30" y="150" width="50" height="40"/><rect x="90" y="140" width="40" height="50"/>
+    <rect x="270" y="146" width="44" height="44"/><rect x="322" y="152" width="56" height="38"/>
+  </g>
+  <g fill="#C9A86A"><rect x="44" y="164" width="9" height="12"/><rect x="104" y="156" width="9" height="12"/><rect x="284" y="160" width="9" height="12"/><rect x="340" y="166" width="9" height="12"/></g>
+  <rect y="186" width="400" height="44" fill="#D9C08C"/>
+  <path d="M0 186 V174 H20 V186 H40 V174 H60 V186 H80 V174 H100 V186 H120 V174 H140 V186 H160 V174 H180 V186 H200 V174 H220 V186 H240 V174 H260 V186 H280 V174 H300 V186 H320 V174 H340 V186 H360 V174 H380 V186 H400" fill="#D9C08C"/>
+  <path d="M182 230 V204 Q200 186 218 204 V230Z" fill="#8C6A3F"/>
+  <path d="M0 220 H400" stroke="#C5A872" stroke-width="2"/>
+  <path d="M0 230 Q200 214 400 230 V300 H0Z" fill="#9CC584"/></svg>

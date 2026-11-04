@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="field-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A6DCF5"/><stop offset="1" stop-color="#F7FBEA"/>
+  </linearGradient></defs>
+  <rect width="400" height="300" fill="url(#field-sky)"/>
+  <circle cx="70" cy="60" r="22" fill="#FFE07A"/>
+  
+  <g fill="#FFFFFF" opacity="0.9" transform="translate(210 50) scale(1)">
+    <ellipse cx="0" cy="0" rx="22" ry="10"/><ellipse cx="16" cy="-6" rx="16" ry="11"/><ellipse cx="32" cy="0" rx="18" ry="9"/>
+  </g>
+  <g fill="#FFFFFF" opacity="0.9" transform="translate(320 90) scale(0.7)">
+    <ellipse cx="0" cy="0" rx="22" ry="10"/><ellipse cx="16" cy="-6" rx="16" ry="11"/><ellipse cx="32" cy="0" rx="18" ry="9"/>
+  </g>
+  <path d="M0 150 Q100 118 200 140 T400 128 V300 H0Z" fill="#9ED17B"/>
+  <path d="M220 150 Q300 132 400 140 V200 Q300 186 220 196Z" fill="#F2C94C"/>
+  <path d="M240 160 V186 M260 156 V188 M280 152 V186 M300 150 V186 M320 148 V188 M340 148 V188 M360 146 V190 M380 146 V190" stroke="#D4A82E" stroke-width="2"/>
+  <path d="M0 200 Q120 176 240 198 T400 192 V300 H0Z" fill="#7CC05A"/>
+  
+  <g transform="translate(80 220)">
+    <rect x="-8" y="6" width="3" height="8" fill="#4A4A52"/><rect x="5" y="6" width="3" height="8" fill="#4A4A52"/>
+    <ellipse cx="0" cy="2" rx="13" ry="9" fill="#FFFFFF"/>
+    <ellipse cx="-13" cy="-1" rx="5" ry="6" fill="#5D5D66"/>
+  </g>
+  <g transform="translate(130 240)">
+    <rect x="-8" y="6" width="3" height="8" fill="#4A4A52"/><rect x="5" y="6" width="3" height="8" fill="#4A4A52"/>
+    <ellipse cx="0" cy="2" rx="13" ry="9" fill="#FFFFFF"/>
+    <ellipse cx="-13" cy="-1" rx="5" ry="6" fill="#5D5D66"/>
+  </g>
+  <g transform="translate(190 226)">
+    <rect x="-8" y="6" width="3" height="8" fill="#4A4A52"/><rect x="5" y="6" width="3" height="8" fill="#4A4A52"/>
+    <ellipse cx="0" cy="2" rx="13" ry="9" fill="#FFFFFF"/>
+    <ellipse cx="-13" cy="-1" rx="5" ry="6" fill="#5D5D66"/>
+  </g>
+  <g transform="translate(110 268)">
+    <rect x="-8" y="6" width="3" height="8" fill="#4A4A52"/><rect x="5" y="6" width="3" height="8" fill="#4A4A52"/>
+    <ellipse cx="0" cy="2" rx="13" ry="9" fill="#FFFFFF"/>
+    <ellipse cx="-13" cy="-1" rx="5" ry="6" fill="#5D5D66"/>
+  </g>
+  <path d="M300 300 V230 M340 300 V236 M300 246 H340 M300 266 H340" stroke="#8B6B43" stroke-width="5" stroke-linecap="round"/></svg>

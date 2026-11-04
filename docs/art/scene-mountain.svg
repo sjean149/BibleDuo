@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="mountain-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A8D8F0"/><stop offset="1" stop-color="#FFF6E5"/>
+  </linearGradient></defs>
+  <rect width="400" height="300" fill="url(#mountain-sky)"/>
+  
+  <g fill="#FFFFFF" opacity="0.9" transform="translate(40 60) scale(1)">
+    <ellipse cx="0" cy="0" rx="22" ry="10"/><ellipse cx="16" cy="-6" rx="16" ry="11"/><ellipse cx="32" cy="0" rx="18" ry="9"/>
+  </g>
+  <g fill="#FFFFFF" opacity="0.9" transform="translate(280 40) scale(1.1)">
+    <ellipse cx="0" cy="0" rx="22" ry="10"/><ellipse cx="16" cy="-6" rx="16" ry="11"/><ellipse cx="32" cy="0" rx="18" ry="9"/>
+  </g>
+  <path d="M-30 230 L90 76 L210 230Z" fill="#8E9CC8"/>
+  <path d="M90 76 L68 104 L80 98 L91 110 L102 98 L113 104Z" fill="#FFFFFF"/>
+  <path d="M120 236 L262 54 L410 236Z" fill="#7383B8"/>
+  <path d="M262 54 L238 86 L252 80 L263 94 L276 80 L288 86Z" fill="#FFFFFF"/>
+  <path d="M0 232 Q100 168 200 210 T400 196 V300 H0Z" fill="#7BC67E"/>
+  <path d="M0 262 Q120 226 240 256 T400 248 V300 H0Z" fill="#58A55C"/>
+  <g fill="#FFFFFF"><circle cx="70" cy="270" r="3"/><circle cx="160" cy="280" r="3"/><circle cx="300" cy="272" r="3"/></g>
+  <g fill="#F7DC6F"><circle cx="70" cy="270" r="1.4"/><circle cx="160" cy="280" r="1.4"/><circle cx="300" cy="272" r="1.4"/></g></svg>

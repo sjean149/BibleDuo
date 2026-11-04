@@ -6,7 +6,7 @@ import { APP_NAME } from '../appInfo';
 import { colors, radius } from '../theme';
 import { longestStreak } from '../progress/logic';
 import { useProgress } from '../progress/ProgressContext';
-import { GOOGLE_CONFIGURED, useAuth } from '../auth/AuthContext';
+import { GOOGLE_UNAVAILABLE_REASON, useAuth } from '../auth/AuthContext';
 import Flag from '../components/Flag';
 import LanguagePicker from '../components/LanguagePicker';
 import SpeedButton from '../components/SpeedButton';
@@ -64,8 +64,8 @@ export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
             <View style={styles.rowBody}>
               <Text style={styles.rowText}>{busy ? 'Signing in…' : 'Sign in with Google'}</Text>
               {authError ? <Text style={[styles.rowSub, { color: colors.madder }]}>{authError}</Text> : null}
+              {GOOGLE_UNAVAILABLE_REASON ? <Text style={styles.rowSub}>{GOOGLE_UNAVAILABLE_REASON}</Text> : null}
             </View>
-            {!GOOGLE_CONFIGURED && <Text style={styles.soon}>Not set up</Text>}
           </Pressable>
         )}
 
@@ -175,6 +175,5 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1, gap: 2 },
   rowText: { fontSize: 17, fontWeight: '700', color: colors.ink },
   rowSub: { fontSize: 14, color: colors.muted },
-  soon: { fontSize: 13, fontWeight: '700', color: colors.muted },
   cancel: { fontSize: 15, fontWeight: '700', color: colors.ink },
 });

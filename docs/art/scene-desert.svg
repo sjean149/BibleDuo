@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="desert-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#F9C784"/><stop offset="1" stop-color="#FFF1D6"/>
+  </linearGradient></defs>
+  <rect width="400" height="300" fill="url(#desert-sky)"/>
+  <circle cx="300" cy="90" r="42" fill="#FFE29A"/>
+  <circle cx="300" cy="90" r="30" fill="#FFD166"/>
+  <path d="M0 190 Q90 150 180 180 T400 170 V300 H0Z" fill="#E9B872"/>
+  <path d="M0 230 Q110 190 220 222 T400 214 V300 H0Z" fill="#DDA15E"/>
+  <path d="M0 268 Q140 240 270 262 T400 258 V300 H0Z" fill="#C98B48"/>
+  <g transform="translate(70 150)">
+    <path d="M10 70 Q14 30 8 0" stroke="#8B5A2B" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M8 0 Q-14 -6 -26 8 M8 0 Q-6 -18 -20 -20 M8 0 Q24 -20 38 -14 M8 0 Q30 -4 40 10 M8 0 Q10 -20 4 -28" stroke="#3E8E41" stroke-width="7" fill="none" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(330 176) scale(0.7)">
+    <path d="M10 70 Q14 30 8 0" stroke="#8B5A2B" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M8 0 Q-14 -6 -26 8 M8 0 Q-6 -18 -20 -20 M8 0 Q24 -20 38 -14 M8 0 Q30 -4 40 10" stroke="#3E8E41" stroke-width="7" fill="none" stroke-linecap="round"/>
+  </g></svg>

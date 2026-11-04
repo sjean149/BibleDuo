@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="wilderness-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#F6B78C"/><stop offset="1" stop-color="#FDE8D0"/>
+  </linearGradient></defs>
+  <rect width="400" height="300" fill="url(#wilderness-sky)"/>
+  <circle cx="90" cy="80" r="24" fill="#FFF0C2"/>
+  <path d="M0 170 L40 120 H120 L150 160 L190 110 H270 L300 150 L340 125 H400 V200 H0Z" fill="#B9835A"/>
+  <path d="M40 132 H122 M190 122 H272 M10 158 H380" stroke="#A06B45" stroke-width="3"/>
+  <path d="M0 200 Q100 180 200 196 T400 190 V300 H0Z" fill="#D4A373"/>
+  <path d="M196 300 C206 270 248 262 254 236 C258 216 284 206 300 196 L312 198 C296 212 274 222 272 240 C266 268 238 280 236 300Z" fill="#5DADE2"/>
+  <path d="M214 292 C226 274 252 266 260 244" stroke="#AED6F1" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <g fill="#7D8F4E"><circle cx="60" cy="240" r="10"/><circle cx="74" cy="244" r="8"/><circle cx="160" cy="262" r="9"/><circle cx="350" cy="250" r="10"/></g>
+  <g fill="#A3B15F"><circle cx="58" cy="236" r="5"/><circle cx="158" cy="258" r="4"/><circle cx="348" cy="246" r="5"/></g></svg>

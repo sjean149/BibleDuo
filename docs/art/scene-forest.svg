@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="forest-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#BFE3C0"/><stop offset="1" stop-color="#F3FAEE"/>
+  </linearGradient></defs>
+  <rect width="400" height="300" fill="url(#forest-sky)"/>
+  
+  <g fill="#FFFFFF" opacity="0.9" transform="translate(250 50) scale(0.9)">
+    <ellipse cx="0" cy="0" rx="22" ry="10"/><ellipse cx="16" cy="-6" rx="16" ry="11"/><ellipse cx="32" cy="0" rx="18" ry="9"/>
+  </g>
+  <path d="M0 160 Q100 130 200 150 T400 140 V300 H0Z" fill="#A9CF8F"/>
+  
+  <g transform="translate(40 150) scale(0.7)">
+    <path d="M-4 60 Q-8 30 0 10 Q6 30 6 60Z" fill="#7B5B3A"/>
+    <ellipse cx="0" cy="0" rx="34" ry="24" fill="#7F9C6B"/>
+    <ellipse cx="-14" cy="-8" rx="18" ry="14" fill="#93B07D"/>
+    <ellipse cx="14" cy="-12" rx="16" ry="12" fill="#A3BE8C"/>
+  </g>
+  <g transform="translate(130 140) scale(0.6)">
+    <path d="M-4 60 Q-8 30 0 10 Q6 30 6 60Z" fill="#7B5B3A"/>
+    <ellipse cx="0" cy="0" rx="34" ry="24" fill="#7F9C6B"/>
+    <ellipse cx="-14" cy="-8" rx="18" ry="14" fill="#93B07D"/>
+    <ellipse cx="14" cy="-12" rx="16" ry="12" fill="#A3BE8C"/>
+  </g>
+  <g transform="translate(250 145) scale(0.65)">
+    <path d="M-4 60 Q-8 30 0 10 Q6 30 6 60Z" fill="#7B5B3A"/>
+    <ellipse cx="0" cy="0" rx="34" ry="24" fill="#7F9C6B"/>
+    <ellipse cx="-14" cy="-8" rx="18" ry="14" fill="#93B07D"/>
+    <ellipse cx="14" cy="-12" rx="16" ry="12" fill="#A3BE8C"/>
+  </g>
+  <g transform="translate(350 150) scale(0.7)">
+    <path d="M-4 60 Q-8 30 0 10 Q6 30 6 60Z" fill="#7B5B3A"/>
+    <ellipse cx="0" cy="0" rx="34" ry="24" fill="#7F9C6B"/>
+    <ellipse cx="-14" cy="-8" rx="18" ry="14" fill="#93B07D"/>
+    <ellipse cx="14" cy="-12" rx="16" ry="12" fill="#A3BE8C"/>
+  </g>
+  <path d="M0 210 Q100 186 200 204 T400 196 V300 H0Z" fill="#7DB862"/>
+  
+  <g transform="translate(80 200) scale(1)">
+    <path d="M-4 60 Q-8 30 0 10 Q6 30 6 60Z" fill="#7B5B3A"/>
+    <ellipse cx="0" cy="0" rx="34" ry="24" fill="#7F9C6B"/>
+    <ellipse cx="-14" cy="-8" rx="18" ry="14" fill="#93B07D"/>
+    <ellipse cx="14" cy="-12" rx="16" ry="12" fill="#A3BE8C"/>
+  </g>
+  <g transform="translate(300 205) scale(1.05)">
+    <path d="M-4 60 Q-8 30 0 10 Q6 30 6 60Z" fill="#7B5B3A"/>
+    <ellipse cx="0" cy="0" rx="34" ry="24" fill="#7F9C6B"/>
+    <ellipse cx="-14" cy="-8" rx="18" ry="14" fill="#93B07D"/>
+    <ellipse cx="14" cy="-12" rx="16" ry="12" fill="#A3BE8C"/>
+  </g>
+  <path d="M170 300 Q190 250 200 220 Q210 250 236 300Z" fill="#E6D3A3"/></svg>

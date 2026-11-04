@@ -21,16 +21,21 @@ def verify_google_id_token(token: str) -> dict:
 
     Raises HTTPException if invalid.
     """
+    # GOOGLE_CLIENT_ID may list several ids, comma separated: the web one plus the iOS and
+    # Android ones, since a token's audience is the client id of the app that asked for it.
+    allowed = [c.strip() for c in settings.google_client_id.split(",") if c.strip()]
+    if not allowed:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Google sign-in is not set up")
     try:
-        payload = id_token.verify_oauth2_token(
-            token, google_requests.Request(), settings.google_client_id
-        )
-        return payload
+        payload = id_token.verify_oauth2_token(token, google_requests.Request(), audience=None)
     except ValueError:
+        payload = None
+    if payload is None or payload.get("aud") not in allowed:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Google ID token",
         )
+    return payload
 
 
 def create_access_token(user_id: int) -> str:
