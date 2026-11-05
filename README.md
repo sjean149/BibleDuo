@@ -1,4 +1,4 @@
-# BibleDuo
+# BibleLingo
 
 **Learn Spanish or French by reading the New Testament**: bite-sized lessons generated from the text
 itself, tap-to-translate on any phrase, and real recorded audio for every Spanish chapter.
