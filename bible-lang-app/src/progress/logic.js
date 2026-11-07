@@ -10,14 +10,15 @@
 //     days: ['2026-10-17', '2026-10-18'],       // every day the learner finished a step
 //     last: { fr: 123 },                        // chapter the learner last worked on, per language
 //     premium: false,                           // unlimited hearts (set once payments are connected)
-//     speed: 1                                  // listening speed for recordings and read-aloud
+//     speed: 1,                                 // listening speed for recordings and read-aloud
+//     base: 'es'                                // the language an English learner speaks ('es' or 'fr')
 //   }
 import { HEART_REFILL_MINUTES, MAX_HEARTS, SPEEDS, STEPS, UNLOCK_EVERYTHING } from './rules';
 
 const REFILL_MS = HEART_REFILL_MINUTES * 30 * 1000;
 
 export function createInitialState(now) {
-  return { lang: 'fr', hearts: MAX_HEARTS, heartsUpdatedAt: now, steps: {}, days: [], last: {}, premium: false, speed: 1 };
+  return { lang: 'fr', hearts: MAX_HEARTS, heartsUpdatedAt: now, steps: {}, days: [], last: {}, premium: false, speed: 1, base: null };
 }
 
 // The next listening speed after this one (wraps from the fastest back to the slowest).
@@ -97,10 +98,10 @@ export function completeStep(state, lang, chapterId, step, now) {
   };
 }
 
-// Start over: progress, streak and hearts are cleared; the chosen language, listening speed and
+// Start over: progress, streak and hearts are cleared; the chosen languages, listening speed and
 // any unlimited plan are kept.
 export function resetProgress(state, now) {
-  return { ...createInitialState(now), lang: state.lang, premium: !!state.premium, speed: state.speed ?? 1 };
+  return { ...createInitialState(now), lang: state.lang, premium: !!state.premium, speed: state.speed ?? 1, base: state.base ?? null };
 }
 
 // Which of the three steps exist for this level (a level only has what the data provides).

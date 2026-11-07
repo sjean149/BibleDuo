@@ -25,7 +25,7 @@ const tile = (file, name, wide) =>
 writeFileSync(
   join(out, 'index.html'),
   `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BibleDuo art</title>
+<title>BibleLingo art</title>
 <style>
   body { font-family: system-ui, sans-serif; background: #EEF2F4; color: #16263A; margin: 0; padding: 24px 16px; }
   h1, h2 { max-width: 960px; margin: 0 auto 12px; } h2 { margin-top: 28px; }
@@ -35,7 +35,7 @@ writeFileSync(
   figure.wide { padding: 0; overflow: hidden; } figure.wide img { aspect-ratio: 4 / 3; object-fit: cover; }
   img { width: 100%; display: block; } figcaption { font-weight: 700; padding: 8px 0 4px; }
 </style>
-<h1>BibleDuo art</h1>
+<h1>BibleLingo art</h1>
 <h2>Characters</h2><div class="grid">${Object.keys(CHARACTERS).map((id) => tile(`character-${id}.svg`, CHARACTER_NAMES[id])).join('')}</div>
 <h2>Scenes</h2><div class="grid scenes">${Object.keys(SCENES).map((id) => tile(`scene-${id}.svg`, SCENE_NAMES[id], true)).join('')}</div>
 `

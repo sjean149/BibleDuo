@@ -51,7 +51,8 @@ export default function StepSheet({
           ) : null}
           <Text style={styles.title}>{title}</Text>
 
-          {STEPS.map((step, i) => {
+          {/* English has no Key Words step. */}
+          {STEPS.filter((step) => lang !== 'en' || step !== 'vocab').map((step, i) => {
             const info = step === 'lesson' && GRAMMAR_LANGS.includes(lang) ? GRAMMAR_INFO : STEP_INFO[step];
             const exists = available.includes(step);
             const finished = done.includes(step);

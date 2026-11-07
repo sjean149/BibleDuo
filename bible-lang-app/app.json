@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "BibleDuo",
+    "name": "BibleLingo",
     "slug": "bible-lang-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -26,6 +26,6 @@
       "expo-audio",
       "expo-web-browser"
     ],
-    "scheme": "bibleduo"
+    "scheme": "biblelingo"
   }
 }

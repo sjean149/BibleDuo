@@ -1,4 +1,4 @@
-# Concepts behind the new BibleDuo features
+# Concepts behind the new BibleLingo features
 
 A study list for understanding the grammar lessons, Google sign-in, backgrounds and characters.
 Each concept says what it is in one line, where it's used in this repo, and what to practice.
@@ -75,7 +75,7 @@ The token's `aud` field says which one it was issued for, and the backend only a
 - Learn: JWT structure (header, payload, signature), expiry, why secrets stay on the server.
 
 **Authorized origins and redirect URIs.** Google only returns tokens to web addresses and app
-schemes you registered in Google Cloud Console (`http://localhost:8081`, your Vercel URL, `bibleduo://`).
+schemes you registered in Google Cloud Console (`http://localhost:8081`, your Vercel URL, `biblelingo://`).
 - Learn: what CORS is and why redirect allowlists exist.
 
 **Public vs. secret config.** Anything named `EXPO_PUBLIC_...` is baked into the app and visible

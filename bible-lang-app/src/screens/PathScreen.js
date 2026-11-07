@@ -8,6 +8,7 @@ import { sceneForChapter } from '../art/scenes';
 import { colors, radius } from '../theme';
 import { computeStatuses, isStepUnlocked, levelProgress, unitProgress } from '../progress/logic';
 import { useProgress } from '../progress/ProgressContext';
+import LanguagePicker from '../components/LanguagePicker';
 import LevelCircle from '../components/LevelCircle';
 import StepSheet from '../components/StepSheet';
 import TopBar from '../components/TopBar';
@@ -19,8 +20,8 @@ const OFFSETS = [0, 38, 64, 38, 0, -38, -64, -38];
 const MENU_FADE_MS = 350;
 
 export default function PathScreen({ onStartStep, onOpenStreak, onOpenHearts }) {
-  const { state, lang, hearts, msToNextHeart } = useProgress();
-  const [journey, setJourney] = useState(() => peekJourney(lang));
+  const { state, lang, base, hearts, msToNextHeart } = useProgress();
+  const [journey, setJourney] = useState(() => peekJourney(lang, base));
   const [error, setError] = useState(null);
   const [attempt, setAttempt] = useState(0); // bump to retry
   const [selected, setSelected] = useState(null); // { unit, level } while the step sheet is open
@@ -34,8 +35,8 @@ export default function PathScreen({ onStartStep, onOpenStreak, onOpenHearts }) 
     let cancelled = false;
     scrolled.current = false;
     setError(null);
-    setJourney(peekJourney(lang));
-    loadJourney(lang)
+    setJourney(peekJourney(lang, base));
+    loadJourney(lang, base)
       .then((data) => {
         if (!cancelled) setJourney(data);
       })
@@ -45,7 +46,7 @@ export default function PathScreen({ onStartStep, onOpenStreak, onOpenHearts }) 
     return () => {
       cancelled = true;
     };
-  }, [lang, attempt]);
+  }, [lang, base, attempt]);
 
   const units = journey?.units ?? [];
   const { statuses } = useMemo(() => computeStatuses(state, lang, units), [state, lang, units]);
@@ -180,6 +181,9 @@ export default function PathScreen({ onStartStep, onOpenStreak, onOpenHearts }) 
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Saved progress from before English asked which language the learner speaks. */}
+      <LanguagePicker visible={lang === 'en' && !base} askSpoken onClose={() => {}} />
 
       <StepSheet
         visible={!!selected}

@@ -26,7 +26,7 @@ function Stat({ icon, color, value, label }) {
 // The profile page: Google sign-in, the learner's progress and the settings. Progress is still
 // saved on this device only; signing in does not sync it yet.
 export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
-  const { state, lang, streak, days, premium, hearts, resetProgress } = useProgress();
+  const { state, lang, base, streak, days, premium, hearts, resetProgress } = useProgress();
   const { user, ready, busy, error: authError, signIn, signOut } = useAuth();
   const [picking, setPicking] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -79,7 +79,10 @@ export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
         <Pressable onPress={() => setPicking(true)} style={styles.row} accessibilityRole="button" accessibilityLabel="Change language">
           <Flag lang={lang} />
           <View style={styles.rowBody}>
-            <Text style={styles.rowText}>Learning {LANGUAGE_NAMES[lang]}</Text>
+            <Text style={styles.rowText}>
+              Learning {LANGUAGE_NAMES[lang]}
+              {base ? ` from ${LANGUAGE_NAMES[base]}` : ''}
+            </Text>
             <Text style={styles.rowSub}>Tap to change</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.muted} />

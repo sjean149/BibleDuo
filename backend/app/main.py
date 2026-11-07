@@ -11,7 +11,7 @@ from app.routers import auth, lessons, translate, verses, journey
 # Swap for Alembic migrations once the schema stabilizes.
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Bible Language Learning API")
+app = FastAPI(title="BibleLingo API")
 
 # Which websites may call the API from a browser (set ALLOWED_ORIGINS in production).
 # The phone app isn't a website, so this doesn't affect it.

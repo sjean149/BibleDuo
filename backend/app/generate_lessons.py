@@ -49,12 +49,22 @@ LANG_NAMES = {"fr": "French", "es": "Spanish", "en": "English"}
 # Book names per language (John -> Juan) live in services/bible_import.py so that the
 # importer, this script and the API all agree on them.
 from app.services.bible_import import local_book_name  # noqa: E402
-from app.services.journey import PRACTICE_ORDER, VOCAB_ORDER  # noqa: E402
+from app.services.journey import ENGLISH_ORDERS, PRACTICE_ORDER, VOCAB_ORDER  # noqa: E402
 from app.services.vocab_store import entries_for, load_vocab  # noqa: E402
 from app import grammar_en, grammar_es, grammar_fr  # noqa: E402
 
 # Each language's grammar curriculum (one rule per chapter, cycling through the rules).
-CURRICULA = {"es": grammar_es, "fr": grammar_fr, "en": grammar_en}
+CURRICULA = {"es": grammar_es, "fr": grammar_fr}
+
+# English is taught in the learner's own language, so it has one curriculum per language.
+ENGLISH_CURRICULA = {base: grammar_en.for_speakers(base) for base in ENGLISH_ORDERS}
+
+# Instructions shared by every grammar lesson; a curriculum can replace them with its own UI.
+DEFAULT_UI = {
+    "quick_check": "Quick check",
+    "review": "Review: {fill}",
+    "in_chapter": "In this chapter",
+}
 
 # A "word" is letters, with an apostrophe or hyphen allowed inside (l'homme, peut-être).
 WORD_RE = re.compile(r"[^\W\d_]+(?:['’\-][^\W\d_]+)*", re.UNICODE)
@@ -380,7 +390,7 @@ def grammar_fill(rule, ref_prefix, verse, hit, instruction=None):
             "text_with_blank": target[:hit["start"]] + "___" + target[hit["end"]:],
             "instruction": instruction or rule["fill"],
             "verse_ref": f"{ref_prefix}:{n}",
-            "hint": en if en != target else None,  # an English lesson has no translation to show
+            "hint": en,
             "rule": rule["id"],
         },
         "answer": {"value": hit["word"], "distractors": hit["options"]},
@@ -419,20 +429,19 @@ def with_teach(question, block):
 
 def verse_card(ref_prefix, verse, start, end):
     n, target, en = verse
-    return {"text": target, "translation": en if en != target else None,
-            "ref": f"{ref_prefix}:{n}", "highlight": [start, end]}
+    return {"text": target, "translation": en, "ref": f"{ref_prefix}:{n}", "highlight": [start, end]}
 
 
-def concept_check(check):
+def concept_check(check, instruction):
     return {
         "type": "multiple_choice",
-        "prompt": {"text": check["question"], "instruction": "Quick check", "audio": False},
+        "prompt": {"text": check["question"], "instruction": instruction, "audio": False},
         "answer": {"value": check["answer"], "distractors": check["distractors"]},
     }
 
 
 def build_grammar(rng, curriculum, rule_index, ref_prefix, verses, known, n_fill=4, n_review=2,
-                  n_translate=2, n_true_false=2, n_reorder=2):
+                  n_translate=2, n_true_false=2):
     """
     One rule's lesson for a chapter: (rule, exercises), or (None, []) if no rule fits the text.
     The chapter's own rule is rules[rule_index]; if fewer than 3 of its verses use it, the next
@@ -442,13 +451,16 @@ def build_grammar(rng, curriculum, rule_index, ref_prefix, verses, known, n_fill
       blanks + reminder, review blanks + reminder of the previous rule
 
     Comprehension questions about the passage (translate a verse, true or false) are mixed in
-    after the opening explanations. An English lesson has no translation to ask about, so its
-    comprehension questions put the words of a short verse back in order instead.
+    after the opening explanations.
 
-    curriculum: the language's grammar module (grammar_es, grammar_fr, grammar_en).
+    curriculum: has RULES and VERB_ENDINGS (grammar_es, grammar_fr, or grammar_en.for_speakers()),
+    and optionally UI, the shared instructions in the learner's language.
+    verses: (number, text being learned, translation), so the translation of an English lesson
+    is the Spanish or French verse.
     """
     rules, endings = curriculum.RULES, curriculum.VERB_ENDINGS
-    translated = any(v[1] != v[2] for v in verses)  # False for English: the verse is its own "translation"
+    own_ui = getattr(curriculum, "UI", None)  # set when the lesson is taught in the learner's language
+    ui = {**DEFAULT_UI, **(own_ui or {})}
     usable = [v for v in verses if 4 <= len(words(v[1])) <= 32 and len(words(v[2])) <= 45]
     for step in range(len(rules)):
         index = (rule_index + step) % len(rules)
@@ -464,8 +476,10 @@ def build_grammar(rng, curriculum, rule_index, ref_prefix, verses, known, n_fill
     example_verse, example_hits = found[0]
     used.add(example_verse[0])
     hit = example_hits[0]
-    example = teach("In this chapter", rule["example"].format(word=hit["word"], note=hit["note"], next=hit["next"]),
+    example = teach(ui["in_chapter"], rule["example"].format(word=hit["word"], note=hit["note"], next=hit["next"]),
                     kind="example", verse=verse_card(ref_prefix, example_verse, hit["start"], hit["end"]))
+    if own_ui:
+        example["label"] = ui["in_chapter"].upper()
 
     find = None
     for v, hs in found[1:]:
@@ -490,14 +504,17 @@ def build_grammar(rng, curriculum, rule_index, ref_prefix, verses, known, n_fill
             hs = rule_hits(previous, v, known, endings) if v[0] not in used else []
             if hs and len(review) < n_review:
                 review.append(grammar_fill(previous, ref_prefix, v, rng.choice(hs),
-                                           instruction=f"Review: {previous['fill']}"))
+                                           instruction=ui["review"].format(fill=previous["fill"])))
                 used.add(v[0])
 
     def tip(r):
         return teach(r["title"], r["summary"], kind="tip")
 
     cards = [teach(c["title"], c["body"], c["examples"], rule_title=rule["title"]) for c in rule["cards"]]
-    checks = [concept_check(c) for c in rule["checks"]]
+    if own_ui:
+        for card in cards:
+            card["label"] = ui["new_rule"]
+    checks = [concept_check(c, ui["quick_check"]) for c in rule["checks"]]
     later_cards = cards[2:]  # explanations still to show once the checks have used theirs
 
     lesson = [with_teach(checks[0], cards[0])]
@@ -512,17 +529,15 @@ def build_grammar(rng, curriculum, rule_index, ref_prefix, verses, known, n_fill
 
     # Comprehension questions about the passage (as in the verse practice), on verses the grammar
     # questions did not use. After the opening explanations, one comes after every two grammar questions.
-    if translated:
-        mc_pool = [v for v in verses if 5 <= len(words(v[1])) <= 22 and len(words(v[2])) <= 30]
-        true_false = make_true_false(rng, ref_prefix, pick(rng, mc_pool, n_true_false, used), mc_pool)
-        translate = make_translate(rng, ref_prefix, pick(rng, mc_pool, n_translate, used), mc_pool)
-        comprehension = [q for pair in zip_longest(translate, true_false) for q in pair if q is not None]
-    else:
-        reorder_pool = [v for v in verses if 4 <= len(words(v[1])) <= 9]
-        comprehension = make_reorder(rng, ref_prefix, pick(rng, reorder_pool, n_reorder, used))
-        for q in comprehension:  # the "translation" would be the answer itself
-            q["prompt"]["instruction"] = "Put the words of the verse in order"
-            q["prompt"].pop("hint", None)
+    mc_pool = [v for v in verses if 5 <= len(words(v[1])) <= 22 and len(words(v[2])) <= 30]
+    true_false = make_true_false(rng, ref_prefix, pick(rng, mc_pool, n_true_false, used), mc_pool)
+    translate = make_translate(rng, ref_prefix, pick(rng, mc_pool, n_translate, used), mc_pool)
+    if own_ui:
+        for q in true_false:
+            q["prompt"]["instruction"] = ui["true_false"]
+        for q in translate:
+            q["prompt"]["instruction"] = ui["translate"]
+    comprehension = [q for pair in zip_longest(translate, true_false) for q in pair if q is not None]
 
     mixed = lesson[:3]
     for i, q in enumerate(lesson[3:]):
@@ -536,14 +551,14 @@ def build_grammar(rng, curriculum, rule_index, ref_prefix, verses, known, n_fill
 
 # ---------------------------------------------------------------- database part
 
-def verse_triples(verses, lang):
-    """Match target-language and English verses by verse number."""
-    by = {lang: {}, "en": {}}
+def verse_triples(verses, lang, native="en"):
+    """Match target-language verses with their translation (English by default) by verse number."""
+    by = {lang: {}, native: {}}
     for v in verses:
         code = getattr(v.lang, "value", v.lang)
         if code in by:
             by[code][v.verse_number] = clean(v.text)
-    return [(n, by[lang][n], by["en"][n]) for n in sorted(by[lang]) if n in by["en"] and by[lang][n]]
+    return [(n, by[lang][n], by[native][n]) for n in sorted(by[lang]) if n in by[native] and by[lang][n]]
 
 
 def main():
@@ -622,6 +637,23 @@ def main():
         for ch in chapters:
             all_verses = db.query(Verse).filter(Verse.chapter_id == ch.id).all()
             for lang in args.langs:
+                # English: one grammar lesson per learner language, with that language's verses
+                # as the translation. (There is no Key Words step: its words would need translating.)
+                if lang == "en":
+                    for base, order in ENGLISH_ORDERS.items():
+                        verses = verse_triples(all_verses, "en", native=base)
+                        if not verses:
+                            continue
+                        curriculum = ENGLISH_CURRICULA[base]
+                        rule, exercises = build_grammar(
+                            random.Random(f"{args.seed}-{ch.id}-en-{base}"), curriculum,
+                            (ch.chapter_number - 1) % len(curriculum.RULES),
+                            f"{book.name} {ch.chapter_number}", verses, known["en"])
+                        if rule:
+                            save(ch, "en", order, f"{book.name} {ch.chapter_number} - Grammar: {rule['title']} - "
+                                                  f"English for {LANG_NAMES[base]} speakers", "sentence", exercises)
+                    continue
+
                 verses = verse_triples(all_verses, lang)
                 if not verses:
                     continue
@@ -629,13 +661,12 @@ def main():
                 ref = f"{local_book_name(book.name, lang)} {ch.chapter_number}"
                 name = LANG_NAMES[lang]
 
-                # Key Words come from the vocabulary file made by `python -m app.build_vocab`
-                # (English has none: its words are already English).
+                # Key Words come from the vocabulary file made by `python -m app.build_vocab`.
                 entries = entries_for(vocab_files[lang], book.name, ch.chapter_number)
                 if entries:
                     kept = {e["word"]: e["translation"] for e in entries[:8]}
                     save(ch, lang, VOCAB_ORDER, f"{ref} - Key Words - {name}", "vocab", build_key_words(rng, kept))
-                elif lang != "en":
+                else:
                     missing_vocab.add(lang)
 
                 # The chapter's grammar rule (rules cycle through the chapters of a book).
@@ -646,8 +677,6 @@ def main():
                     save(ch, lang, PRACTICE_ORDER, f"{ref} - Grammar: {rule['title']} - {name}",
                          "sentence", exercises)
                     continue
-                if lang == "en":
-                    continue  # verse practice is translation questions, which English can't have
 
                 # Blanks are taken from this chapter's vocabulary when it has one.
                 vocab_words = {e["word"].lower() for e in entries} or None

@@ -112,8 +112,8 @@ export function fetchChapterAudio(chapterId, lang) {
 }
 
 // Every book with its chapters and the ids of each chapter's three steps (the path screen).
-export function fetchJourney(lang) {
-  return apiGet(`/journey?lang=${lang}`);
+export function fetchJourney(lang, base) {
+  return apiGet(`/journey?lang=${lang}${base ? `&base=${base}` : ''}`);
 }
 
 // Google sign-in: trade the Google ID token for our own session token ({ access_token }).

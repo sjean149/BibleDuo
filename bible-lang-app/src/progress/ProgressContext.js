@@ -59,7 +59,7 @@ export function ProgressProvider({ children }) {
 
   const actions = useMemo(
     () => ({
-      setLang: (lang) => setState((s) => ({ ...s, lang })),
+      setLang: (lang, base) => setState((s) => ({ ...s, lang, base: base ?? s.base ?? null })),
       loseHeart: () => setState((s) => loseHeartLogic(s, Date.now())),
       completeStep: (lang, chapterId, step) =>
         setState((s) => completeStepLogic(s, lang, chapterId, step, Date.now())),
@@ -77,6 +77,7 @@ export function ProgressProvider({ children }) {
       ready: true,
       state,
       lang: state.lang,
+      base: state.lang === 'en' ? (state.base ?? null) : null, // only English uses it
       premium: !!state.premium,
       speed: state.speed ?? 1, // listening speed (older saves have none: normal speed)
       hearts: state.premium ? MAX_HEARTS : state.hearts, // unlimited plan: always full

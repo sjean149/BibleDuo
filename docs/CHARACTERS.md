@@ -1,4 +1,4 @@
-# BibleDuo helpers
+# BibleLingo helpers
 
 Five characters guide learners through lessons. They are drawn as SVG in
 `bible-lang-app/src/art/characters.js` and exported as image files to `docs/art/`

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     google_application_credentials: str = ""
 
     # Websites allowed to call this API from a browser, separated by commas, e.g.
-    # "https://bibleduo.vercel.app,http://localhost:8081". "*" allows any site (fine for development).
+    # "*" allows any site (fine for development).
     allowed_origins: str = "*"
 
     # Most characters all visitors together may send to Google Translate per day (UTC).

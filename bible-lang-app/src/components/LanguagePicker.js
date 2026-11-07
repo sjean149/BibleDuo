@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius } from '../theme';
@@ -10,29 +11,76 @@ const LANGUAGES = [
   { code: 'en', label: 'English' },
 ];
 
+// English is taught in the learner's own language, so these labels are written in that language.
+const SPOKEN = [
+  { code: 'es', label: 'Español', question: '¿Qué idioma hablas?' },
+  { code: 'fr', label: 'Français', question: 'Quelle langue parles-tu ?' },
+];
+
 // The "I want to learn" pop-up. Used by the flag in the top bar and by the profile page.
-export default function LanguagePicker({ visible, onClose }) {
-  const { lang, setLang } = useProgress();
+// Choosing English then asks which language the learner speaks.
+// askSpoken: open straight on that question, and require an answer (saved progress without one).
+export default function LanguagePicker({ visible, onClose, askSpoken = false }) {
+  const { lang, base, setLang } = useProgress();
+  const [choosingSpoken, setChoosingSpoken] = useState(false);
+  const showSpoken = askSpoken || choosingSpoken;
+
+  const close = () => {
+    setChoosingSpoken(false);
+    onClose();
+  };
+
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={askSpoken ? undefined : close}>
+      <Pressable style={styles.backdrop} onPress={askSpoken ? undefined : close}>
         <Pressable style={styles.sheet} onPress={() => {}}>
-          <Text style={styles.title}>I want to learn</Text>
-          {LANGUAGES.map((l) => (
-            <Pressable
-              key={l.code}
-              onPress={() => {
-                setLang(l.code);
-                onClose();
-              }}
-              style={[styles.option, l.code === lang && styles.optionActive]}
-              accessibilityRole="button"
-            >
-              <Flag lang={l.code} height={26} />
-              <Text style={styles.optionText}>{l.label}</Text>
-              {l.code === lang && <Ionicons name="checkmark" size={22} color={colors.lapisDark} />}
-            </Pressable>
-          ))}
+          {showSpoken ? (
+            <>
+              {SPOKEN.map((s) => (
+                <Text key={s.code} style={styles.title}>
+                  {s.question}
+                </Text>
+              ))}
+              {SPOKEN.map((s) => (
+                <Pressable
+                  key={s.code}
+                  onPress={() => {
+                    setLang('en', s.code);
+                    close();
+                  }}
+                  style={[styles.option, s.code === base && styles.optionActive]}
+                  accessibilityRole="button"
+                >
+                  <Flag lang={s.code} height={26} />
+                  <Text style={styles.optionText}>{s.label}</Text>
+                  {s.code === base && <Ionicons name="checkmark" size={22} color={colors.lapisDark} />}
+                </Pressable>
+              ))}
+            </>
+          ) : (
+            <>
+              <Text style={styles.title}>I want to learn</Text>
+              {LANGUAGES.map((l) => (
+                <Pressable
+                  key={l.code}
+                  onPress={() => {
+                    if (l.code === 'en') {
+                      setChoosingSpoken(true);
+                      return;
+                    }
+                    setLang(l.code);
+                    close();
+                  }}
+                  style={[styles.option, l.code === lang && styles.optionActive]}
+                  accessibilityRole="button"
+                >
+                  <Flag lang={l.code} height={26} />
+                  <Text style={styles.optionText}>{l.label}</Text>
+                  {l.code === lang && <Ionicons name="checkmark" size={22} color={colors.lapisDark} />}
+                </Pressable>
+              ))}
+            </>
+          )}
         </Pressable>
       </Pressable>
     </Modal>

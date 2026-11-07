@@ -1,4 +1,4 @@
-# Bible Language Learning: Backend
+# BibleLingo: Backend
 
 FastAPI backend for the French / Spanish / English Gospel-reading app. Data lives in
 **PostgreSQL** (hosted on Supabase). Verse text covers Matthew, Mark, Luke and John in

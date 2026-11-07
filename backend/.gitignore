@@ -1,6 +1,8 @@
 # Secrets
 .env
 gcp-service-account.json
+# Google names downloaded keys after the project, e.g. bible-lang-app-5ebcdca517f6.json
+bible-lang-app-*.json
 
 # Python
 venv/

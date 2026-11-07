@@ -8,6 +8,7 @@ import { fetchMe, signInWithGoogle } from '../api';
 // Closes the Google pop-up on web once it redirects back to the app.
 WebBrowser.maybeCompleteAuthSession();
 
+// Keeps the app's old name on purpose: renaming this key would sign everyone out.
 const KEY = 'bibleduo.session.v1';
 
 // Google OAuth client ids (Google Cloud Console > APIs & Services > Credentials). The web id must
@@ -26,7 +27,8 @@ const PLATFORM_CLIENT_ID = Platform.select({
   android: CLIENT_IDS.androidClientId,
   default: CLIENT_IDS.webClientId,
 });
-export const GOOGLE_CONFIGURED = !!PLATFORM_CLIENT_ID;
+// The sample value from .env.example counts as missing: Google would only reject it.
+export const GOOGLE_CONFIGURED = !!PLATFORM_CLIENT_ID && !PLATFORM_CLIENT_ID.startsWith('your-');
 export const GOOGLE_UNAVAILABLE_REASON = GOOGLE_CONFIGURED
   ? null
   : Platform.OS === 'web'

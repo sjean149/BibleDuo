@@ -16,7 +16,7 @@ const HELPER = {
 };
 
 // The teaching shown above a grammar question, on the same screen (exercise.prompt.teach):
-//   { kind: 'rule' | 'example' | 'tip', title, body, examples: [{ target, native }],
+//   { kind: 'rule' | 'example' | 'tip', title, body, examples: [{ target, native }], label?,
 //     rule_title?, verse?: { text, translation, ref, highlight: [start, end] } }
 // A 'tip' is a one-line reminder of the rule; the others have a helper with a speech bubble.
 export default function TeachBlock({ teach, lang }) {
@@ -34,7 +34,7 @@ export default function TeachBlock({ teach, lang }) {
     );
   }
 
-  const label = KIND_LABEL[kind] ?? 'LEARN';
+  const label = teach.label ?? KIND_LABEL[kind] ?? 'LEARN'; // lessons in the learner's language bring their own
   return (
     <View style={styles.wrap}>
       <Text style={styles.kind}>

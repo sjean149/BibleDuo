@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Progress is saved on the device, as one small JSON value.
 // To move it to the backend later (Supabase, after Google sign-in), replace these three
 // functions. Nothing else in the app talks to storage.
+// Keeps the app's old name on purpose: renaming this key would lose everyone's saved progress.
 const KEY = 'bibleduo.progress.v1';
 
 export async function loadState() {

@@ -10,14 +10,18 @@ from app.services.bible_import import NEW_TESTAMENT, local_book_name
 VOCAB_ORDER = 90      # "Key Words" step
 PRACTICE_ORDER = 91   # "Verse Practice" step
 
+# English is taught in the learner's language, so its lesson step has one lesson per language.
+ENGLISH_ORDERS = {"es": 92, "fr": 93}
 
-def build_journey(lang, books, chapters, lessons, text_chapter_ids):
+
+def build_journey(lang, books, chapters, lessons, text_chapter_ids, practice_order=PRACTICE_ORDER):
     """
     lang               'fr' | 'es' | 'en'
     books              rows with .id .name
     chapters           rows with .id .book_id .chapter_number
     lessons            rows with .id .chapter_id .order  (already limited to this language)
     text_chapter_ids   set of chapter ids that have verses in this language
+    practice_order     which lesson is the lesson step (see ENGLISH_ORDERS)
 
     Always returns all 27 books, in Bible order. A book that hasn't been imported yet comes back
     with no levels and available=False, so the app can show it as "coming soon".
@@ -43,7 +47,7 @@ def build_journey(lang, books, chapters, lessons, text_chapter_ids):
                 "chapter_id": c.id,
                 "chapter_number": c.chapter_number,
                 "vocab_lesson_id": ids.get(VOCAB_ORDER),
-                "practice_lesson_id": ids.get(PRACTICE_ORDER),
+                "practice_lesson_id": ids.get(practice_order),
                 "has_text": c.id in text_chapter_ids,
             })
         units.append({

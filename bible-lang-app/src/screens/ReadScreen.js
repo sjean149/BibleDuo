@@ -15,16 +15,16 @@ import TopBar from '../components/TopBar';
 // reading part of that chapter's circle on the path.
 //   bookOrder: which book is open (null = the list of books)
 export default function ReadScreen({ bookOrder, onSelectBook, onOpenChapter, onOpenStreak, onOpenHearts }) {
-  const { state, lang } = useProgress();
-  const [journey, setJourney] = useState(() => peekJourney(lang));
+  const { state, lang, base } = useProgress();
+  const [journey, setJourney] = useState(() => peekJourney(lang, base));
   const [error, setError] = useState(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setError(null);
-    setJourney(peekJourney(lang));
-    loadJourney(lang)
+    setJourney(peekJourney(lang, base));
+    loadJourney(lang, base)
       .then((data) => {
         if (!cancelled) setJourney(data);
       })
@@ -34,7 +34,7 @@ export default function ReadScreen({ bookOrder, onSelectBook, onOpenChapter, onO
     return () => {
       cancelled = true;
     };
-  }, [lang, attempt]);
+  }, [lang, base, attempt]);
 
   const units = journey?.units ?? [];
   const index = units.findIndex((u) => u.order === bookOrder);

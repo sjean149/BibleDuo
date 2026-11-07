@@ -1,11 +1,14 @@
 """The English grammar curriculum: one rule per chapter, in teaching order.
 
 Same shape as grammar_es.py (see its docstring for every field). The text is the World English
-Bible, in modern English. Learners read the verse without a translation, so every rule is chosen
-so that the verse itself decides the answer (a or an, is or are, he or him), and the past-tense
-rules say in the instruction that the story is told in the past.
-Apostrophes in the text are ’ (don’t, isn’t).
+Bible, in modern English. Apostrophes in the text are ’ (don’t, isn’t).
+
+English is taught in the learner's own language: for_speakers() swaps the teaching text below
+for the Spanish or French text in grammar_en_i18n.py. The English text here is the source.
 """
+from types import SimpleNamespace
+
+from app.grammar_en_i18n import TEXT, UI
 from app.grammar_es import options
 
 VERB_ENDINGS = ()  # no English rule needs to tell pronouns from articles
@@ -268,3 +271,34 @@ RULES = [
         "summary": "Most verbs: add -ed (or -d after e) for the past.",
     },
 ]
+
+
+def for_speakers(base):
+    """
+    The curriculum as a Spanish ("es") or French ("fr") speaker reads it: same rules and options,
+    with the teaching text from grammar_en_i18n.py. English words being taught stay in English.
+    """
+    localized = []
+    for rule in RULES:
+        text = TEXT[base][rule["id"]]
+        new = {**rule, **{k: text[k] for k in ("title", "example", "fill", "find", "summary")}}
+        new["cards"] = [
+            {"title": t["title"], "body": t["body"],
+             "examples": [(en, native) for (en, _), native in zip(card["examples"], t["natives"], strict=True)]}
+            for card, t in zip(rule["cards"], text["cards"], strict=True)
+        ]
+        new["checks"] = [{**check, "question": q} for check, q in zip(rule["checks"], text["checks"], strict=True)]
+        if "match" in rule:
+            new["match"] = _with_note(rule["match"], text["match_note"])
+        else:
+            new["forms"] = {word: (text["notes"][word], wrong) for word, (_, wrong) in rule["forms"].items()}
+        localized.append(new)
+    return SimpleNamespace(RULES=localized, VERB_ENDINGS=VERB_ENDINGS, UI=UI[base])
+
+
+def _with_note(match, note):
+    """The same `match` function, describing what it finds with this note."""
+    def localized(word, known):
+        found = match(word, known)
+        return (note, found[1]) if found else None
+    return localized

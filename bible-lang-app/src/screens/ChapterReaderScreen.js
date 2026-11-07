@@ -20,7 +20,8 @@ const clock = (seconds) => {
 };
 
 // The "Read and listen" step: the chapter in the language being learned.
-//  - tap one word, then another, to select a phrase; Translate shows it in English (Google Translate)
+//  - tap one word, then another, to select a phrase; Translate shows it in English, or in the
+//    learner's own language when learning English (Google Translate)
 //  - Listen plays the chapter's recording (from Supabase) when there is one,
 //    otherwise the phone reads it aloud verse by verse (text-to-speech)
 //  - the speed button (0.5x to 1.5x) sets how fast both of those play
@@ -34,7 +35,8 @@ export default function ChapterReaderScreen({ title, chapterId, lang, scene, onE
   const [audioUrl, setAudioUrl] = useState(null); // the chapter recording, if this language has one
   const stopReading = useRef(null);
   const mounted = useRef(true);
-  const { speed } = useProgress(); // listening speed, changed with the speed button
+  // speed: listening speed, changed with the speed button. base: what English learners translate into.
+  const { speed, base } = useProgress();
 
   // One audio player for the screen. It starts empty and is given the recording once we know
   // its link; it is released automatically when the screen closes.
@@ -123,7 +125,7 @@ export default function ChapterReaderScreen({ title, chapterId, lang, scene, onE
   const translate = async () => {
     setResult({ status: 'loading', text: '' });
     try {
-      const data = await translateText(selectedText, lang);
+      const data = await translateText(selectedText, lang, base ?? 'en');
       if (mounted.current) setResult({ status: 'done', text: data.translation });
     } catch (err) {
       // 429 = a translation limit was hit; the server's message says which one and when it resets.
